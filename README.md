@@ -86,19 +86,18 @@ A aplicação é dividida entre **backend** e **frontend**, permitindo uma arqui
 As tecnologias utilizadas no projeto serão definidas e documentadas conforme o desenvolvimento.
 
 ### Backend
-- Python
+- Typescript
 - API REST
 - Banco de dados relacional
 
 ### Frontend
-- HTML
-- CSS
-- JavaScript
+- NodeJS
 
 ### Ferramentas
 - Git
 - GitHub
 - Visual Studio Code
+- DBeaver
 
 ---
 
@@ -124,28 +123,21 @@ Entre na pasta:
 cd backend
 ```
 
-Crie um ambiente virtual:
+Inicie o backend
 
 ```bash
-python -m venv venv
-```
-
-Ative o ambiente virtual no Windows:
-
-```powershell
-venv\Scripts\Activate.ps1
-```
-
-Instale as dependências:
-
-```bash
-pip install -r requirements.txt
+npm run dev
 ```
 
 ### 4. Configure o Frontend
 
 ```bash
 cd ../frontend
+```
+Inicie o frontend
+
+```bash
+npm run dev
 ```
 
 As instruções específicas do frontend serão adicionadas conforme a estrutura do projeto for definida.
@@ -155,16 +147,6 @@ As instruções específicas do frontend serão adicionadas conforme a estrutura
 ## 🔐 Configuração de ambiente
 
 Informações sensíveis **não devem ser armazenadas diretamente no código ou no GitHub**.
-
-Utilize variáveis de ambiente para informações como:
-
-```env
-DATABASE_URL=
-SECRET_KEY=
-API_URL=
-```
-
-Um arquivo `.env.example` será disponibilizado futuramente para facilitar a configuração do ambiente.
 
 ---
 
