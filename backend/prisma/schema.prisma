@@ -1,0 +1,480 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// TENANT / USUÁRIOS
+// ============================================================
+
+model Empresa {
+  id       String   @id @default(uuid()) @db.Uuid
+  nome     String
+  cnpj     String?  @unique
+  plano    String   @default("trial")
+  criadoEm DateTime @default(now()) @map("criado_em")
+
+  usuarios         Usuario[]
+  clientes         Cliente[]
+  itensAtendimento ItemAtendimento[]
+  ordensServico    OrdemServico[]
+  pecas            Peca[]
+
+  @@map("empresas")
+}
+
+enum PapelUsuario {
+  desenvolvedor
+  admin
+  colaborador
+
+  @@map("papel_usuario")
+}
+
+enum ModuloSistema {
+  dashboard
+  ordens_servico
+  orcamentos
+  clientes
+  estoque
+  usuarios
+  financeiro
+
+  @@map("modulo_sistema")
+}
+
+model Usuario {
+  id        String       @id @default(uuid()) @db.Uuid
+  empresaId String       @map("empresa_id") @db.Uuid
+  nome      String
+  email     String
+  senhaHash String       @map("senha_hash")
+  papel     PapelUsuario
+  ativo     Boolean      @default(true)
+  criadoEm  DateTime     @default(now()) @map("criado_em")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  osComoAtendente      OrdemServico[]        @relation("OsAtendente")
+  osComoTecnico        OrdemServico[]        @relation("OsTecnico")
+  diagnosticos         Diagnostico[]
+  apontamentosHoras    ApontamentoHoras[]
+  qaRevisoes           QaRevisao[]
+  entregas             Entrega[]
+  statusHistorico      OsStatusHistorico[]
+  movimentacoesEstoque MovimentacaoEstoque[]
+  permissoes           PermissaoUsuario[]
+
+  @@unique([empresaId, email])
+  @@map("usuarios")
+}
+
+model PermissaoUsuario {
+  id           String        @id @default(uuid()) @db.Uuid
+  usuarioId    String        @map("usuario_id") @db.Uuid
+  modulo       ModuloSistema
+  podeVer      Boolean       @default(false) @map("pode_ver")
+  podeCriar    Boolean       @default(false) @map("pode_criar")
+  podeEditar   Boolean       @default(false) @map("pode_editar")
+  podeApagar   Boolean       @default(false) @map("pode_apagar")
+  criadoEm     DateTime      @default(now()) @map("criado_em")
+  atualizadoEm DateTime      @default(now()) @updatedAt @map("atualizado_em")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, modulo])
+  @@map("permissoes_usuario")
+}
+
+// ============================================================
+// CLIENTES E ITENS ATENDIDOS
+// ============================================================
+
+model Cliente {
+  id        String   @id @default(uuid()) @db.Uuid
+  empresaId String   @map("empresa_id") @db.Uuid
+  nome      String
+  documento String?
+  telefone  String?
+  email     String?
+  endereco  Json?
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  empresa          Empresa           @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  itensAtendimento ItemAtendimento[]
+  ordensServico    OrdemServico[]
+
+  @@index([empresaId])
+  @@map("clientes")
+}
+
+model ItemAtendimento {
+  id            String   @id @default(uuid()) @db.Uuid
+  empresaId     String   @map("empresa_id") @db.Uuid
+  clienteId     String   @map("cliente_id") @db.Uuid
+  tipo          String
+  descricao     String
+  identificador String?
+  criadoEm      DateTime @default(now()) @map("criado_em")
+
+  empresa       Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente       Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  ordensServico OrdemServico[]
+
+  @@index([clienteId])
+  @@map("itens_atendimento")
+}
+
+// ============================================================
+// ORDEM DE SERVIÇO (núcleo do sistema)
+// ============================================================
+
+enum StatusOs {
+  aberta
+  em_diagnostico
+  aguardando_aprovacao
+  aprovada
+  em_execucao
+  em_qa
+  concluida
+  faturada
+  entregue
+  cancelada
+  aguardando_peca
+  reaberta
+
+  @@map("status_os")
+}
+
+enum PrioridadeOs {
+  baixa
+  normal
+  alta
+  urgente
+
+  @@map("prioridade_os")
+}
+
+model OrdemServico {
+  id               String       @id @default(uuid()) @db.Uuid
+  empresaId        String       @map("empresa_id") @db.Uuid
+  numero           Int          @default(autoincrement())
+  clienteId        String       @map("cliente_id") @db.Uuid
+  itemId           String?      @map("item_id") @db.Uuid
+  atendenteId      String?      @map("atendente_id") @db.Uuid
+  tecnicoId        String?      @map("tecnico_id") @db.Uuid
+  status           StatusOs     @default(aberta)
+  prioridade       PrioridadeOs @default(normal)
+  problemaRelatado String       @map("problema_relatado")
+  osOrigemId       String?      @map("os_origem_id") @db.Uuid
+  criadoEm         DateTime     @default(now()) @map("criado_em")
+  atualizadoEm     DateTime     @default(now()) @updatedAt @map("atualizado_em")
+
+  empresa   Empresa          @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente   Cliente          @relation(fields: [clienteId], references: [id])
+  item      ItemAtendimento? @relation(fields: [itemId], references: [id])
+  atendente Usuario?         @relation("OsAtendente", fields: [atendenteId], references: [id])
+  tecnico   Usuario?         @relation("OsTecnico", fields: [tecnicoId], references: [id])
+  osOrigem  OrdemServico?    @relation("OsRetorno", fields: [osOrigemId], references: [id])
+  retornos  OrdemServico[]   @relation("OsRetorno")
+
+  statusHistorico   OsStatusHistorico[]
+  diagnosticos      Diagnostico[]
+  orcamentos        Orcamento[]
+  pecasUtilizadas   OsPecaUtilizada[]
+  apontamentosHoras ApontamentoHoras[]
+  qaRevisoes        QaRevisao[]
+  faturas           Fatura[]
+  entregas          Entrega[]
+  garantias         Garantia[]
+  fotos             FotoOs[]
+
+  @@index([empresaId, status])
+  @@index([clienteId])
+  @@map("ordens_servico")
+}
+
+model FotoOs {
+  id        String   @id @default(uuid()) @db.Uuid
+  osId      String   @map("os_id") @db.Uuid
+  url       String
+  legenda   String?
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+
+  @@index([osId])
+  @@map("fotos_os")
+}
+
+model OsStatusHistorico {
+  id             String    @id @default(uuid()) @db.Uuid
+  osId           String    @map("os_id") @db.Uuid
+  statusAnterior StatusOs? @map("status_anterior")
+  statusNovo     StatusOs  @map("status_novo")
+  usuarioId      String?   @map("usuario_id") @db.Uuid
+  observacao     String?
+  criadoEm       DateTime  @default(now()) @map("criado_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+  usuario      Usuario?     @relation(fields: [usuarioId], references: [id])
+
+  @@index([osId])
+  @@map("os_status_historico")
+}
+
+// ============================================================
+// DIAGNÓSTICO
+// ============================================================
+
+model Diagnostico {
+  id        String   @id @default(uuid()) @db.Uuid
+  osId      String   @map("os_id") @db.Uuid
+  tecnicoId String   @map("tecnico_id") @db.Uuid
+  laudo     String
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+  tecnico      Usuario      @relation(fields: [tecnicoId], references: [id])
+
+  @@map("diagnosticos")
+}
+
+// ============================================================
+// ESTOQUE DE PEÇAS
+// ============================================================
+
+model Peca {
+  id                String  @id @default(uuid()) @db.Uuid
+  empresaId         String  @map("empresa_id") @db.Uuid
+  sku               String
+  nome              String
+  quantidadeEstoque Decimal @default(0) @map("quantidade_estoque") @db.Decimal(10, 2)
+  valorUnitario     Decimal @default(0) @map("valor_unitario") @db.Decimal(12, 2)
+  ativo             Boolean @default(true)
+
+  empresa        Empresa               @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  orcamentoItens OrcamentoItem[]
+  osPecas        OsPecaUtilizada[]
+  movimentacoes  MovimentacaoEstoque[]
+
+  @@unique([empresaId, sku])
+  @@map("pecas")
+}
+
+enum TipoMovimentacaoEstoque {
+  entrada
+  saida
+
+  @@map("tipo_movimentacao_estoque")
+}
+
+model MovimentacaoEstoque {
+  id         String                  @id @default(uuid()) @db.Uuid
+  pecaId     String                  @map("peca_id") @db.Uuid
+  usuarioId  String                  @map("usuario_id") @db.Uuid
+  tipo       TipoMovimentacaoEstoque
+  quantidade Decimal                 @db.Decimal(10, 2)
+  motivo     String?
+  criadoEm   DateTime                @default(now()) @map("criado_em")
+
+  peca    Peca    @relation(fields: [pecaId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@index([pecaId])
+  @@map("movimentacoes_estoque")
+}
+
+// ============================================================
+// ORÇAMENTO
+// ============================================================
+
+enum StatusOrcamento {
+  pendente
+  aprovado
+  recusado
+  expirado
+
+  @@map("status_orcamento")
+}
+
+model Orcamento {
+  id           String          @id @default(uuid()) @db.Uuid
+  osId         String          @map("os_id") @db.Uuid
+  status       StatusOrcamento @default(pendente)
+  valorTotal   Decimal         @default(0) @map("valor_total") @db.Decimal(12, 2)
+  enviadoEm    DateTime?       @map("enviado_em")
+  respondidoEm DateTime?       @map("respondido_em")
+  validadeDias Int             @default(7) @map("validade_dias")
+  criadoEm     DateTime        @default(now()) @map("criado_em")
+
+  ordemServico OrdemServico    @relation(fields: [osId], references: [id], onDelete: Cascade)
+  itens        OrcamentoItem[]
+
+  @@map("orcamentos")
+}
+
+enum TipoItemOrcamento {
+  peca
+  mao_de_obra
+  servico_terceiro
+
+  @@map("tipo_item_orcamento")
+}
+
+model OrcamentoItem {
+  id            String            @id @default(uuid()) @db.Uuid
+  orcamentoId   String            @map("orcamento_id") @db.Uuid
+  tipo          TipoItemOrcamento
+  descricao     String
+  quantidade    Decimal           @default(1) @db.Decimal(10, 2)
+  valorUnitario Decimal           @map("valor_unitario") @db.Decimal(12, 2)
+  pecaId        String?           @map("peca_id") @db.Uuid
+
+  orcamento Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  peca      Peca?     @relation(fields: [pecaId], references: [id])
+
+  @@map("orcamento_itens")
+}
+
+model OsPecaUtilizada {
+  id            String   @id @default(uuid()) @db.Uuid
+  osId          String   @map("os_id") @db.Uuid
+  pecaId        String   @map("peca_id") @db.Uuid
+  quantidade    Decimal  @db.Decimal(10, 2)
+  valorUnitario Decimal  @map("valor_unitario") @db.Decimal(12, 2)
+  criadoEm      DateTime @default(now()) @map("criado_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+  peca         Peca         @relation(fields: [pecaId], references: [id])
+
+  @@map("os_pecas_utilizadas")
+}
+
+// ============================================================
+// EXECUÇÃO — APONTAMENTO DE HORAS
+// ============================================================
+
+model ApontamentoHoras {
+  id        String    @id @default(uuid()) @db.Uuid
+  osId      String    @map("os_id") @db.Uuid
+  tecnicoId String    @map("tecnico_id") @db.Uuid
+  inicio    DateTime
+  fim       DateTime?
+  descricao String?
+  criadoEm  DateTime  @default(now()) @map("criado_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+  tecnico      Usuario      @relation(fields: [tecnicoId], references: [id])
+
+  @@map("apontamentos_horas")
+}
+
+// ============================================================
+// QA / CONTROLE DE QUALIDADE
+// ============================================================
+
+enum ResultadoQa {
+  aprovado
+  reprovado
+
+  @@map("resultado_qa")
+}
+
+model QaRevisao {
+  id           String      @id @default(uuid()) @db.Uuid
+  osId         String      @map("os_id") @db.Uuid
+  supervisorId String      @map("supervisor_id") @db.Uuid
+  resultado    ResultadoQa
+  observacao   String?
+  criadoEm     DateTime    @default(now()) @map("criado_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+  supervisor   Usuario      @relation(fields: [supervisorId], references: [id])
+
+  @@map("qa_revisoes")
+}
+
+// ============================================================
+// FATURAMENTO
+// ============================================================
+
+enum StatusPagamento {
+  pendente
+  parcial
+  pago
+  cancelado
+
+  @@map("status_pagamento")
+}
+
+model Fatura {
+  id         String          @id @default(uuid()) @db.Uuid
+  osId       String          @map("os_id") @db.Uuid
+  numero     Int             @default(autoincrement())
+  valorTotal Decimal         @map("valor_total") @db.Decimal(12, 2)
+  status     StatusPagamento @default(pendente)
+  emitidaEm  DateTime        @default(now()) @map("emitida_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+  pagamentos   Pagamento[]
+
+  @@map("faturas")
+}
+
+enum StatusParcela {
+  pendente
+  pago
+  cancelado
+
+  @@map("status_parcela")
+}
+
+model Pagamento {
+  id         String        @id @default(uuid()) @db.Uuid
+  faturaId   String        @map("fatura_id") @db.Uuid
+  valor      Decimal       @db.Decimal(12, 2)
+  metodo     String
+  status     StatusParcela @default(pago)
+  vencimento DateTime?     @map("vencimento") @db.Date
+  pagoEm     DateTime?     @map("pago_em")
+  criadoEm   DateTime      @default(now()) @map("criado_em")
+
+  fatura Fatura @relation(fields: [faturaId], references: [id], onDelete: Cascade)
+
+  @@map("pagamentos")
+}
+
+// ============================================================
+// ENTREGA E GARANTIA
+// ============================================================
+
+model Entrega {
+  id                   String   @id @default(uuid()) @db.Uuid
+  osId                 String   @map("os_id") @db.Uuid
+  entreguePor          String?  @map("entregue_por") @db.Uuid
+  confirmadoPorCliente Boolean  @default(false) @map("confirmado_por_cliente")
+  entregueEm           DateTime @default(now()) @map("entregue_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+  entregador   Usuario?     @relation(fields: [entreguePor], references: [id])
+
+  @@map("entregas")
+}
+
+model Garantia {
+  id       String   @id @default(uuid()) @db.Uuid
+  osId     String   @map("os_id") @db.Uuid
+  prazoFim DateTime @map("prazo_fim") @db.Date
+  termos   String?
+  criadoEm DateTime @default(now()) @map("criado_em")
+
+  ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+
+  @@map("garantias")
+}
