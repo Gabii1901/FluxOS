@@ -81,7 +81,7 @@ enum FormaPagamento {
 
 model CobrancaPlano {
   id            String   @id @default(uuid())
-  empresaId     String   @map("empresa_id") @db.Uuid
+  empresaId     String   @map("empresa_id")
   valor         Decimal  @db.Decimal(10, 2)
   vencimento    DateTime @db.Date
   status        String   @default("pendente") // pendente | pago | vencido

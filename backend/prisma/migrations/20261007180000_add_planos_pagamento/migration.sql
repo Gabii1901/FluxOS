@@ -30,7 +30,7 @@ ALTER TABLE "empresas" ADD COLUMN "valor_personalizado" DECIMAL(10,2);
 -- CreateTable
 CREATE TABLE "cobrancas_plano" (
     "id" TEXT NOT NULL,
-    "empresa_id" UUID NOT NULL,
+    "empresa_id" TEXT NOT NULL,
     "valor" DECIMAL(10,2) NOT NULL,
     "vencimento" DATE NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'pendente',
