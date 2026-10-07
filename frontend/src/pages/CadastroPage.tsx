@@ -29,6 +29,18 @@ export function CadastroPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [concluido, setConcluido] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
+  const [reenviado, setReenviado] = useState(false);
+
+  async function handleReenviar() {
+    setReenviando(true);
+    try {
+      await api.post("/auth/reenviar-confirmacao", { email });
+      setReenviado(true);
+    } finally {
+      setReenviando(false);
+    }
+  }
 
   async function buscarCep(valor: string) {
     const digitos = valor.replace(/\D/g, "");
@@ -85,7 +97,24 @@ export function CadastroPage() {
               Enviamos um link de confirmação para <strong>{email}</strong>. Clique nele para
               ativar sua conta e entrar no FluxOS.
             </p>
-            <Link to="/login" className="mt-6 inline-block text-sm font-medium text-slate-900 underline">
+            <p className="mt-2 text-xs text-slate-400">
+              Não achou? Confira também a caixa de spam/lixo eletrônico.
+            </p>
+
+            {reenviado ? (
+              <p className="mt-4 text-sm font-medium text-green-700">Link reenviado! Confira seu e-mail.</p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleReenviar}
+                disabled={reenviando}
+                className="mt-4 text-sm font-medium text-slate-900 underline disabled:opacity-60"
+              >
+                {reenviando ? "Enviando..." : "Reenviar e-mail de confirmação"}
+              </button>
+            )}
+
+            <Link to="/login" className="mt-6 block text-sm font-medium text-slate-500 underline">
               Voltar para o login
             </Link>
           </div>
