@@ -4,14 +4,7 @@ import { z } from "zod";
 import { podeGerenciarPapel } from "../lib/hierarquiaPapel";
 import { MODULOS, montarMapaPermissoes } from "../lib/permissoes";
 import { prisma } from "../lib/prisma";
-
-const usuarioResumoSelect = {
-  id: true,
-  nome: true,
-  email: true,
-  papel: true,
-  ativo: true,
-} as const;
+import { achatarUsuario, usuarioResumoSelect } from "../lib/usuarios";
 
 export async function listarUsuarios(req: Request, res: Response) {
   const usuarios = await prisma.usuario.findMany({
@@ -20,7 +13,7 @@ export async function listarUsuarios(req: Request, res: Response) {
     orderBy: { nome: "asc" },
   });
 
-  res.json(usuarios);
+  res.json(usuarios.map(achatarUsuario));
 }
 
 export async function buscarPermissoes(req: Request, res: Response) {
@@ -36,7 +29,7 @@ export async function buscarPermissoes(req: Request, res: Response) {
 
   const permissoes = await montarMapaPermissoes(usuario.id, usuario.papel);
 
-  res.json({ usuario, permissoes });
+  res.json({ usuario: achatarUsuario(usuario), permissoes });
 }
 
 const permissaoModuloSchema = z.object({

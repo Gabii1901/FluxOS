@@ -9,10 +9,24 @@ import {
 import { api } from "../lib/api";
 import type { UsuarioLogado } from "../types/auth";
 
+export interface EmpresaDisponivel {
+  empresaId: string;
+  empresaNome: string;
+}
+
+export type ResultadoLogin =
+  | { tipo: "ok" }
+  | { tipo: "escolher_empresa"; preAuthToken: string; empresas: EmpresaDisponivel[] };
+
+export class EmailNaoConfirmadoError extends Error {}
+
 interface AuthContextValue {
   usuario: UsuarioLogado | null;
   carregando: boolean;
-  login: (email: string, senha: string) => Promise<void>;
+  login: (email: string, senha: string) => Promise<ResultadoLogin>;
+  selecionarEmpresa: (preAuthToken: string, empresaId: string) => Promise<void>;
+  confirmarEmail: (token: string) => Promise<void>;
+  atualizarUsuario: () => Promise<void>;
   logout: () => void;
 }
 
@@ -38,13 +52,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setCarregando(false));
   }, []);
 
-  async function login(email: string, senha: string) {
+  function aplicarSessao(dados: { token: string; usuario: UsuarioLogado }) {
+    localStorage.setItem(TOKEN_KEY, dados.token);
+    setUsuario(dados.usuario);
+  }
+
+  async function login(email: string, senha: string): Promise<ResultadoLogin> {
+    try {
+      const resposta = await api.post<
+        | { token: string; usuario: UsuarioLogado }
+        | { precisaEscolherEmpresa: true; preAuthToken: string; empresas: EmpresaDisponivel[] }
+      >("/auth/login", { email, senha });
+
+      if ("precisaEscolherEmpresa" in resposta.data) {
+        return {
+          tipo: "escolher_empresa",
+          preAuthToken: resposta.data.preAuthToken,
+          empresas: resposta.data.empresas,
+        };
+      }
+
+      aplicarSessao(resposta.data);
+      return { tipo: "ok" };
+    } catch (erro: any) {
+      if (erro?.response?.data?.precisaConfirmarEmail) {
+        throw new EmailNaoConfirmadoError();
+      }
+      throw erro;
+    }
+  }
+
+  async function selecionarEmpresa(preAuthToken: string, empresaId: string) {
     const resposta = await api.post<{ token: string; usuario: UsuarioLogado }>(
-      "/auth/login",
-      { email, senha },
+      "/auth/selecionar-empresa",
+      { preAuthToken, empresaId },
     );
-    localStorage.setItem(TOKEN_KEY, resposta.data.token);
-    setUsuario(resposta.data.usuario);
+    aplicarSessao(resposta.data);
+  }
+
+  async function confirmarEmail(token: string) {
+    const resposta = await api.post<{ token: string; usuario: UsuarioLogado }>(
+      "/auth/confirmar-email",
+      { token },
+    );
+    aplicarSessao(resposta.data);
+  }
+
+  async function atualizarUsuario() {
+    const resposta = await api.get<UsuarioLogado>("/auth/me");
+    setUsuario(resposta.data);
   }
 
   function logout() {
@@ -53,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo(
-    () => ({ usuario, carregando, login, logout }),
+    () => ({ usuario, carregando, login, selecionarEmpresa, confirmarEmail, atualizarUsuario, logout }),
     [usuario, carregando],
   );
 

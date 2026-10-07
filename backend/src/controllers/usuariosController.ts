@@ -3,15 +3,7 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { podeGerenciarPapel } from "../lib/hierarquiaPapel";
 import { prisma } from "../lib/prisma";
-
-const usuarioResumoSelect = {
-  id: true,
-  nome: true,
-  email: true,
-  papel: true,
-  ativo: true,
-  criadoEm: true,
-} as const;
+import { achatarUsuario, usuarioResumoSelect } from "../lib/usuarios";
 
 const PAPEIS = ["desenvolvedor", "admin", "colaborador"] as const;
 
@@ -34,45 +26,57 @@ export async function listar(req: Request, res: Response) {
     orderBy: { nome: "asc" },
   });
 
-  res.json(usuarios);
+  res.json(usuarios.map(achatarUsuario));
 }
 
 export async function criar(req: Request, res: Response) {
   const dados = criarUsuarioSchema.parse(req.body);
+  const email = dados.email.toLowerCase().trim();
 
   if (!podeGerenciarPapel(req.usuario!.papel, dados.papel)) {
     return res.status(403).json({ erro: "Você não pode cadastrar um usuário com papel maior que o seu" });
   }
 
-  const jaExiste = await prisma.usuario.findFirst({
-    where: { empresaId: req.usuario!.empresaId, email: dados.email },
-  });
-  if (jaExiste) {
-    return res.status(409).json({ erro: "Já existe um usuário com este e-mail" });
+  const contaExistente = await prisma.conta.findUnique({ where: { email } });
+
+  if (contaExistente) {
+    const jaVinculado = await prisma.usuario.findUnique({
+      where: { contaId_empresaId: { contaId: contaExistente.id, empresaId: req.usuario!.empresaId } },
+    });
+    if (jaVinculado) {
+      return res.status(409).json({ erro: "Este e-mail já faz parte da sua empresa" });
+    }
   }
 
-  const senhaHash = await bcrypt.hash(dados.senha, 10);
+  const usuario = await prisma.$transaction(async (tx) => {
+    const conta =
+      contaExistente ??
+      (await tx.conta.create({
+        data: {
+          email,
+          senhaHash: await bcrypt.hash(dados.senha, 10),
+          emailVerificado: true,
+        },
+      }));
 
-  const usuario = await prisma.usuario.create({
-    data: {
-      empresaId: req.usuario!.empresaId,
-      nome: dados.nome,
-      email: dados.email,
-      papel: dados.papel,
-      senhaHash,
-    },
-    select: usuarioResumoSelect,
+    return tx.usuario.create({
+      data: {
+        empresaId: req.usuario!.empresaId,
+        contaId: conta.id,
+        nome: dados.nome,
+        papel: dados.papel,
+      },
+      select: usuarioResumoSelect,
+    });
   });
 
-  res.status(201).json(usuario);
+  res.status(201).json(achatarUsuario(usuario));
 }
 
 const atualizarUsuarioSchema = z.object({
   nome: z.string().min(1).optional(),
-  email: z.string().email().optional(),
   papel: z.enum(PAPEIS).optional(),
   ativo: z.boolean().optional(),
-  senha: z.string().min(6).optional(),
 });
 
 export async function atualizar(req: Request, res: Response) {
@@ -98,25 +102,11 @@ export async function atualizar(req: Request, res: Response) {
     return res.status(403).json({ erro: "Você não pode gerenciar um usuário com papel maior que o seu" });
   }
 
-  if (dados.email && dados.email !== usuario.email) {
-    const jaExiste = await prisma.usuario.findFirst({
-      where: { empresaId: req.usuario!.empresaId, email: dados.email, NOT: { id } },
-    });
-    if (jaExiste) {
-      return res.status(409).json({ erro: "Já existe um usuário com este e-mail" });
-    }
-  }
-
-  const { senha, ...resto } = dados;
-
   const atualizado = await prisma.usuario.update({
     where: { id },
-    data: {
-      ...resto,
-      senhaHash: senha ? await bcrypt.hash(senha, 10) : undefined,
-    },
+    data: dados,
     select: usuarioResumoSelect,
   });
 
-  res.json(atualizado);
+  res.json(achatarUsuario(atualizado));
 }

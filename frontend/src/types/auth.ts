@@ -8,6 +8,16 @@ export const NIVEL_PAPEL: Record<Papel, number> = {
   colaborador: 0,
 };
 
+export type Plano = "basico" | "intermediario" | "avancado" | "personalizado";
+export type StatusAssinatura = "pendente" | "ativo" | "inadimplente" | "cancelado";
+
+export const PLANO_LABEL: Record<Plano, string> = {
+  basico: "Básico",
+  intermediario: "Intermediário",
+  avancado: "Avançado",
+  personalizado: "Personalizado",
+};
+
 export interface UsuarioLogado {
   id: string;
   nome: string;
@@ -15,6 +25,8 @@ export interface UsuarioLogado {
   papel: Papel;
   empresaId: string;
   empresaNome: string;
+  plano: Plano | null;
+  statusAssinatura: StatusAssinatura;
   permissoes: MapaPermissoes;
 }
 

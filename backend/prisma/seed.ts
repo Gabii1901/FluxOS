@@ -5,36 +5,45 @@ const prisma = new PrismaClient();
 
 async function main() {
   const empresa = await prisma.empresa.create({
-    data: { nome: "Oficina do João", plano: "trial" },
+    data: { nome: "Oficina do João", plano: "avancado", statusAssinatura: "ativo" },
   });
 
   const senhaHash = await bcrypt.hash("123456", 10);
+
+  const [contaAna, contaCarlos, contaBianca] = await Promise.all([
+    prisma.conta.create({
+      data: { email: "ana@fluxos.dev", senhaHash, emailVerificado: true },
+    }),
+    prisma.conta.create({
+      data: { email: "carlos@fluxos.dev", senhaHash, emailVerificado: true },
+    }),
+    prisma.conta.create({
+      data: { email: "bianca@fluxos.dev", senhaHash, emailVerificado: true },
+    }),
+  ]);
 
   const [admin, tecnico, atendente] = await Promise.all([
     prisma.usuario.create({
       data: {
         empresaId: empresa.id,
+        contaId: contaAna.id,
         nome: "Ana Souza",
-        email: "ana@fluxos.dev",
-        senhaHash,
         papel: "admin",
       },
     }),
     prisma.usuario.create({
       data: {
         empresaId: empresa.id,
+        contaId: contaCarlos.id,
         nome: "Carlos Lima",
-        email: "carlos@fluxos.dev",
-        senhaHash,
         papel: "colaborador",
       },
     }),
     prisma.usuario.create({
       data: {
         empresaId: empresa.id,
+        contaId: contaBianca.id,
         nome: "Bianca Rocha",
-        email: "bianca@fluxos.dev",
-        senhaHash,
         papel: "colaborador",
       },
     }),

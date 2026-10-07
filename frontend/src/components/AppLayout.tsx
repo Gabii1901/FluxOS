@@ -59,6 +59,21 @@ export function AppLayout() {
               Permissões
             </NavLink>
           )}
+
+          {usuario?.papel === "desenvolvedor" && (
+            <NavLink
+              to="/admin/empresas"
+              className={({ isActive }) =>
+                `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                }`
+              }
+            >
+              Empresas (admin)
+            </NavLink>
+          )}
         </nav>
 
         <div className="border-t border-slate-200 px-4 py-4">

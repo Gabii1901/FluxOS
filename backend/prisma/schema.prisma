@@ -12,17 +12,36 @@ datasource db {
 // ============================================================
 
 model Empresa {
-  id       String   @id @default(uuid()) @db.Uuid
-  nome     String
-  cnpj     String?  @unique
-  plano    String   @default("trial")
-  criadoEm DateTime @default(now()) @map("criado_em")
+  id               String            @id @default(uuid()) @db.Uuid
+  nome             String
+  cnpj             String?           @unique
+  plano            PlanoSistema?
+  statusAssinatura StatusAssinatura  @default(pendente) @map("status_assinatura")
+  formaPagamento   FormaPagamento?   @map("forma_pagamento")
+  diaVencimento    Int?              @map("dia_vencimento")
+  cpfCnpjBoleto    String?           @map("cpf_cnpj_boleto")
+  mpAssinaturaId   String?           @map("mp_assinatura_id")
+  // Só usado quando plano = personalizado — preço negociado fora da tabela padrão.
+  valorPersonalizado Decimal?        @db.Decimal(10, 2) @map("valor_personalizado")
+
+  // Endereço — coletado no cadastro, exigido pelo Mercado Pago para emitir
+  // boleto registrado (mesmo quem paga de cartão já deixa isso resolvido).
+  enderecoCep          String? @map("endereco_cep")
+  enderecoLogradouro   String? @map("endereco_logradouro")
+  enderecoNumero       String? @map("endereco_numero")
+  enderecoComplemento  String? @map("endereco_complemento")
+  enderecoBairro       String? @map("endereco_bairro")
+  enderecoCidade       String? @map("endereco_cidade")
+  enderecoUf           String? @map("endereco_uf")
+
+  criadoEm         DateTime          @default(now()) @map("criado_em")
 
   usuarios         Usuario[]
   clientes         Cliente[]
   itensAtendimento ItemAtendimento[]
   ordensServico    OrdemServico[]
   pecas            Peca[]
+  cobrancas        CobrancaPlano[]
 
   @@map("empresas")
 }
@@ -33,6 +52,46 @@ enum PapelUsuario {
   colaborador
 
   @@map("papel_usuario")
+}
+
+enum PlanoSistema {
+  basico
+  intermediario
+  avancado
+  personalizado
+
+  @@map("plano_sistema")
+}
+
+enum StatusAssinatura {
+  pendente
+  ativo
+  inadimplente
+  cancelado
+
+  @@map("status_assinatura")
+}
+
+enum FormaPagamento {
+  cartao
+  boleto
+
+  @@map("forma_pagamento")
+}
+
+model CobrancaPlano {
+  id            String   @id @default(uuid())
+  empresaId     String   @map("empresa_id") @db.Uuid
+  valor         Decimal  @db.Decimal(10, 2)
+  vencimento    DateTime @db.Date
+  status        String   @default("pendente") // pendente | pago | vencido
+  mpPagamentoId String?  @map("mp_pagamento_id")
+  linkPagamento String?  @map("link_pagamento")
+  criadoEm      DateTime @default(now()) @map("criado_em")
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@map("cobrancas_plano")
 }
 
 enum ModuloSistema {
@@ -47,16 +106,32 @@ enum ModuloSistema {
   @@map("modulo_sistema")
 }
 
+// Identidade única de login. Uma Conta pode estar vinculada a várias
+// empresas (uma linha de Usuario por empresa), sem duplicar senha/e-mail.
+model Conta {
+  id                       String    @id @default(uuid())
+  email                    String    @unique
+  senhaHash                String    @map("senha_hash")
+  emailVerificado          Boolean   @default(false) @map("email_verificado")
+  tokenVerificacao         String?   @map("token_verificacao")
+  tokenVerificacaoExpiraEm DateTime? @map("token_verificacao_expira_em")
+  criadoEm                 DateTime  @default(now()) @map("criado_em")
+
+  usuarios Usuario[]
+
+  @@map("contas")
+}
+
 model Usuario {
   id        String       @id @default(uuid()) @db.Uuid
+  contaId   String       @map("conta_id")
   empresaId String       @map("empresa_id") @db.Uuid
   nome      String
-  email     String
-  senhaHash String       @map("senha_hash")
   papel     PapelUsuario
   ativo     Boolean      @default(true)
   criadoEm  DateTime     @default(now()) @map("criado_em")
 
+  conta   Conta   @relation(fields: [contaId], references: [id], onDelete: Cascade)
   empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   osComoAtendente      OrdemServico[]        @relation("OsAtendente")
@@ -69,7 +144,7 @@ model Usuario {
   movimentacoesEstoque MovimentacaoEstoque[]
   permissoes           PermissaoUsuario[]
 
-  @@unique([empresaId, email])
+  @@unique([contaId, empresaId])
   @@map("usuarios")
 }
 
