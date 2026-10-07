@@ -1,7 +1,7 @@
 -- Fotos anexadas a uma ordem de serviço
 CREATE TABLE "fotos_os" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "os_id" UUID NOT NULL,
+    "id" TEXT NOT NULL,
+    "os_id" TEXT NOT NULL,
     "url" TEXT NOT NULL,
     "legenda" TEXT,
     "criado_em" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -3,9 +3,9 @@ CREATE TYPE "tipo_movimentacao_estoque" AS ENUM ('entrada', 'saida');
 
 -- CreateTable
 CREATE TABLE "movimentacoes_estoque" (
-    "id" UUID NOT NULL,
-    "peca_id" UUID NOT NULL,
-    "usuario_id" UUID NOT NULL,
+    "id" TEXT NOT NULL,
+    "peca_id" TEXT NOT NULL,
+    "usuario_id" TEXT NOT NULL,
     "tipo" "tipo_movimentacao_estoque" NOT NULL,
     "quantidade" DECIMAL(10,2) NOT NULL,
     "motivo" TEXT,

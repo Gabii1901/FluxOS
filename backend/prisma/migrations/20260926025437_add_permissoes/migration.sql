@@ -5,8 +5,8 @@ ALTER TYPE "papel_usuario" ADD VALUE 'desenvolvedor';
 CREATE TYPE "modulo_sistema" AS ENUM ('dashboard', 'ordens_servico', 'orcamentos', 'clientes', 'estoque', 'usuarios', 'financeiro');
 
 CREATE TABLE "permissoes_usuario" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "usuario_id" UUID NOT NULL,
+    "id" TEXT NOT NULL,
+    "usuario_id" TEXT NOT NULL,
     "modulo" "modulo_sistema" NOT NULL,
     "pode_ver" BOOLEAN NOT NULL DEFAULT false,
     "pode_criar" BOOLEAN NOT NULL DEFAULT false,

@@ -20,7 +20,7 @@ import { UsuariosPage } from "./pages/UsuariosPage";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/app">
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FluxOS — Gestão completa para sua oficina e assistência técnica</title>
+<meta name="description" content="FluxOS é o sistema de gestão para oficinas e assistências técnicas: ordens de serviço, orçamentos, clientes, estoque e financeiro em um só lugar." />
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="apple-touch-icon" href="assets/favicon.png" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  #login-modal[hidden] { display: none !important; }
+</style>
+</head>
+<body class="bg-white text-slate-900">
+
+  <!-- Header -->
+  <header class="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#top" class="flex items-center">
+        <img src="assets/logo_fluxos_wordmark.png" alt="FluxOS" class="h-8 w-auto" />
+      </a>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+        <a href="#recursos" class="hover:text-slate-900 transition">Recursos</a>
+        <a href="#como-funciona" class="hover:text-slate-900 transition">Como funciona</a>
+        <a href="#contato" class="hover:text-slate-900 transition">Contato</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="https://wa.me/5549988753626?text=Ol%C3%A1!%20Quero%20conhecer%20o%20FluxOS."
+           target="_blank" rel="noopener"
+           class="hidden sm:inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-md border border-slate-300 text-slate-700 hover:border-slate-900 hover:text-slate-900 transition">
+          Falar no WhatsApp
+        </a>
+        <!-- Troque data-login-trigger por href="/login" (URL real) quando o acesso estiver liberado -->
+        <button type="button" data-login-trigger
+           class="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white transition">
+          Já é cliente? Entrar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="top" class="bg-[#0b1220] pt-40 pb-28 px-6">
+    <div class="max-w-5xl mx-auto text-center">
+      <span class="inline-block mb-6 text-xs font-semibold uppercase tracking-widest text-blue-400 border border-blue-400/30 px-3 py-1 rounded-full">
+        Gestão para oficinas e assistências técnicas
+      </span>
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-white">
+        Organize ordens de serviço, orçamentos e estoque <span class="text-blue-400">em um só lugar</span>
+      </h1>
+      <p class="mt-6 text-lg text-slate-300 max-w-2xl mx-auto">
+        O FluxOS centraliza o dia a dia da sua oficina: do orçamento ao pagamento, com controle de clientes,
+        peças em estoque e permissões para cada usuário da equipe.
+      </p>
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button type="button" data-login-trigger
+           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base transition">
+          Já é cliente? Entrar no sistema
+        </button>
+        <a href="https://wa.me/5549988753626?text=Ol%C3%A1!%20Quero%20conhecer%20o%20FluxOS%20para%20minha%20oficina."
+           target="_blank" rel="noopener"
+           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-md border border-slate-600 text-white hover:border-white transition font-semibold text-base">
+          Falar com um especialista
+        </a>
+      </div>
+      <p class="mt-5 text-sm text-slate-400">Sem cartão de crédito · Implantação assistida · Suporte em português</p>
+    </div>
+  </section>
+
+  <!-- Recursos -->
+  <section id="recursos" class="bg-white py-24 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-2xl mx-auto mb-14">
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">Tudo que a sua oficina precisa</h2>
+        <p class="mt-4 text-slate-600">Um sistema completo, pensado para o fluxo real de trabalho de oficinas e assistências técnicas.</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="rounded-xl border border-slate-200 p-6 hover:border-blue-300 transition">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+          </div>
+          <h3 class="font-semibold text-lg mb-2 text-slate-900">Ordens de Serviço</h3>
+          <p class="text-slate-600 text-sm">Abra, acompanhe e imprima OS com status atualizado em tempo real para cada cliente.</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 p-6 hover:border-blue-300 transition">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 15h6"></path><path d="M9 11h2"></path></svg>
+          </div>
+          <h3 class="font-semibold text-lg mb-2 text-slate-900">Orçamentos</h3>
+          <p class="text-slate-600 text-sm">Gere orçamentos profissionais e converta em ordem de serviço com um clique.</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 p-6 hover:border-blue-300 transition">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 8 12 3 3 8l9 5 9-5Z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg>
+          </div>
+          <h3 class="font-semibold text-lg mb-2 text-slate-900">Estoque</h3>
+          <p class="text-slate-600 text-sm">Controle de peças com histórico, detalhes e alertas para nunca perder uma venda.</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 p-6 hover:border-blue-300 transition">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <h3 class="font-semibold text-lg mb-2 text-slate-900">Clientes</h3>
+          <p class="text-slate-600 text-sm">Histórico completo de atendimentos, contatos e equipamentos de cada cliente.</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 p-6 hover:border-blue-300 transition">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <h3 class="font-semibold text-lg mb-2 text-slate-900">Financeiro</h3>
+          <p class="text-slate-600 text-sm">Acompanhe pagamentos pendentes e tenha visão clara do caixa da oficina.</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 p-6 hover:border-blue-300 transition">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <h3 class="font-semibold text-lg mb-2 text-slate-900">Usuários &amp; Permissões</h3>
+          <p class="text-slate-600 text-sm">Defina o que cada membro da equipe pode acessar, com controle total de permissões.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Como funciona -->
+  <section id="como-funciona" class="bg-slate-50 py-24 px-6 border-y border-slate-200">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center max-w-2xl mx-auto mb-14">
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">Como funciona</h2>
+        <p class="mt-4 text-slate-600">Em poucos passos, sua oficina já está rodando no FluxOS.</p>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="w-11 h-11 rounded-full bg-[#0b1220] text-white font-bold flex items-center justify-center mx-auto mb-4">1</div>
+          <h3 class="font-semibold mb-2 text-slate-900">Fale com a gente</h3>
+          <p class="text-slate-600 text-sm">Converse pelo WhatsApp e conte como sua oficina funciona hoje.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-11 h-11 rounded-full bg-[#0b1220] text-white font-bold flex items-center justify-center mx-auto mb-4">2</div>
+          <h3 class="font-semibold mb-2 text-slate-900">Configuramos pra você</h3>
+          <p class="text-slate-600 text-sm">Criamos seu ambiente, usuários e permissões iniciais.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-11 h-11 rounded-full bg-[#0b1220] text-white font-bold flex items-center justify-center mx-auto mb-4">3</div>
+          <h3 class="font-semibold mb-2 text-slate-900">Comece a usar</h3>
+          <p class="text-slate-600 text-sm">Acesse pelo login e centralize toda a gestão da sua oficina.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA final -->
+  <section id="contato" class="py-24 px-6 bg-white">
+    <div class="max-w-4xl mx-auto text-center bg-[#0b1220] rounded-2xl p-10 sm:p-14">
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white">Pronto para organizar sua oficina?</h2>
+      <p class="mt-4 text-slate-300 max-w-xl mx-auto">
+        Se você já é cliente, acesse sua conta. Se ainda não conhece o FluxOS, fale com a gente no WhatsApp.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button type="button" data-login-trigger
+           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">
+          Já é cliente? Entrar
+        </button>
+        <a href="https://wa.me/5549988753626?text=Ol%C3%A1!%20Quero%20conhecer%20o%20FluxOS."
+           target="_blank" rel="noopener"
+           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-md border border-slate-600 text-white hover:border-white transition font-semibold">
+          Falar no WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-10 px-6 border-t border-slate-200 text-center text-slate-500 text-sm bg-white">
+    <p>© <span id="year"></span> FluxOS. Todos os direitos reservados.</p>
+  </footer>
+
+  <!-- Botão flutuante de WhatsApp -->
+  <a href="https://wa.me/5549988753626?text=Ol%C3%A1!%20Quero%20conhecer%20o%20FluxOS."
+     target="_blank" rel="noopener"
+     class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center shadow-lg transition"
+     aria-label="Falar no WhatsApp">
+    <svg viewBox="0 0 24 24" fill="white" class="w-7 h-7"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.149-.15.297-.371.446-.556.148-.185.198-.32.297-.531.099-.21.05-.397-.05-.556-.097-.15-.669-1.612-.916-2.21-.247-.598-.49-.512-.669-.512-.173-.001-.372-.001-.572-.001-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.463 1.065 2.876 1.213 3.074.148.198 2.05 3.126 4.973 4.258 2.922 1.133 2.922.756 3.448.707.527-.05 1.758-.72 2.006-1.414.248-.694.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347z"></path><path d="M12.004 2C6.486 2 2 6.486 2 12.004c0 1.87.513 3.628 1.405 5.136L2 22l4.98-1.368A9.949 9.949 0 0 0 12.004 22c5.518 0 10.004-4.486 10.004-9.996C22.008 6.486 17.522 2 12.004 2zm0 18.033c-1.698 0-3.33-.455-4.75-1.316l-.34-.202-3.096.851.837-3.063-.223-.351a7.993 7.993 0 0 1-1.233-4.952c0-4.42 3.595-8.015 8.015-8.015 4.42 0 8.014 3.595 8.014 8.015 0 4.42-3.594 8.033-8.224 8.033z"></path></svg>
+  </a>
+
+  <!-- Modal "Em breve" -->
+  <div id="login-modal" hidden class="fixed inset-0 z-50 flex items-center justify-center px-6">
+    <div data-modal-close class="absolute inset-0 bg-slate-900/70"></div>
+    <div class="relative bg-white rounded-2xl p-8 sm:p-10 max-w-md w-full text-center shadow-2xl border border-slate-200">
+      <button type="button" data-modal-close aria-label="Fechar"
+        class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
+        ✕
+      </button>
+      <div class="w-14 h-14 flex items-center justify-center mx-auto mb-5">
+        <img src="assets/logo_fluxos.png" alt="FluxOS" class="w-14 h-14 object-contain" />
+      </div>
+      <span class="inline-block mb-3 text-xs font-semibold uppercase tracking-widest text-blue-600 border border-blue-200 px-3 py-1 rounded-full">
+        Em breve
+      </span>
+      <h3 class="text-2xl font-bold tracking-tight mb-3 text-slate-900">O login ainda não está disponível</h3>
+      <p class="text-slate-600 text-sm mb-7">
+        Estamos finalizando o acesso ao FluxOS. Fale com a gente no WhatsApp para saber quando sua oficina poderá entrar no sistema.
+      </p>
+      <a href="https://wa.me/5549988753626?text=Ol%C3%A1!%20Quero%20saber%20quando%20o%20login%20do%20FluxOS%20estar%C3%A1%20dispon%C3%ADvel."
+         target="_blank" rel="noopener"
+         class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold transition">
+        Falar no WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const modal = document.getElementById('login-modal');
+    document.querySelectorAll('[data-login-trigger]').forEach((btn) => {
+      btn.addEventListener('click', () => { modal.hidden = false; });
+    });
+    document.querySelectorAll('[data-modal-close]').forEach((el) => {
+      el.addEventListener('click', () => { modal.hidden = true; });
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') modal.hidden = true;
+    });
+  </script>
+</body>
+</html>

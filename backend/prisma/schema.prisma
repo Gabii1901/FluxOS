@@ -74,8 +74,8 @@ model Usuario {
 }
 
 model PermissaoUsuario {
-  id           String        @id @default(uuid()) @db.Uuid
-  usuarioId    String        @map("usuario_id") @db.Uuid
+  id           String        @id @default(uuid())
+  usuarioId    String        @map("usuario_id")
   modulo       ModuloSistema
   podeVer      Boolean       @default(false) @map("pode_ver")
   podeCriar    Boolean       @default(false) @map("pode_criar")
@@ -200,8 +200,8 @@ model OrdemServico {
 }
 
 model FotoOs {
-  id        String   @id @default(uuid()) @db.Uuid
-  osId      String   @map("os_id") @db.Uuid
+  id        String   @id @default(uuid())
+  osId      String   @map("os_id")
   url       String
   legenda   String?
   criadoEm  DateTime @default(now()) @map("criado_em")
@@ -275,9 +275,9 @@ enum TipoMovimentacaoEstoque {
 }
 
 model MovimentacaoEstoque {
-  id         String                  @id @default(uuid()) @db.Uuid
-  pecaId     String                  @map("peca_id") @db.Uuid
-  usuarioId  String                  @map("usuario_id") @db.Uuid
+  id         String                  @id @default(uuid())
+  pecaId     String                  @map("peca_id")
+  usuarioId  String                  @map("usuario_id")
   tipo       TipoMovimentacaoEstoque
   quantidade Decimal                 @db.Decimal(10, 2)
   motivo     String?

@@ -1,0 +1,22 @@
+# Serviço systemd do backend do FluxOS.
+# Copie para /etc/systemd/system/fluxos-backend.service e rode:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now fluxos-backend
+#   sudo systemctl status fluxos-backend
+#   journalctl -u fluxos-backend -f   (ver logs)
+
+[Unit]
+Description=FluxOS Backend API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=fluxos
+WorkingDirectory=/var/www/fluxos/backend
+EnvironmentFile=/var/www/fluxos/backend/.env
+ExecStart=/usr/bin/node dist/server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
