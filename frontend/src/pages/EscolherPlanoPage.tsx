@@ -201,7 +201,7 @@ export function EscolherPlanoPage() {
     <div className="min-h-screen bg-slate-50 px-4 py-12">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 flex justify-center">
-          <img src="/logo_fluxos_full_trimmed.png" alt="FluxOS" className="h-20 w-auto" />
+          <img src={`${import.meta.env.BASE_URL}logo_fluxos_full_trimmed.png`} alt="FluxOS" className="h-20 w-auto" />
         </div>
         <h1 className="mb-2 text-center text-2xl font-bold text-slate-900">Escolha seu plano</h1>
         <p className="mb-10 text-center text-sm text-slate-500">

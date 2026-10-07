@@ -77,7 +77,7 @@ export function LoginPage() {
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex justify-center">
-            <img src="/logo_fluxos_full_trimmed.png" alt="FluxOS" className="h-24 w-auto" />
+            <img src={`${import.meta.env.BASE_URL}logo_fluxos_full_trimmed.png`} alt="FluxOS" className="h-24 w-auto" />
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <p className="mb-4 text-sm font-medium text-slate-700">Escolha a empresa</p>
@@ -107,7 +107,7 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
-          <img src="/logo_fluxos_full_trimmed.png" alt="FluxOS" className="h-24 w-auto" />
+          <img src={`${import.meta.env.BASE_URL}logo_fluxos_full_trimmed.png`} alt="FluxOS" className="h-24 w-auto" />
         </div>
 
         <form onSubmit={handleSubmit} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

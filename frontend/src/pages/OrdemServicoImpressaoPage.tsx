@@ -39,7 +39,7 @@ export function OrdemServicoImpressaoPage() {
 
       <header className="mb-8 flex items-start justify-between border-b border-slate-300 pb-6">
         <div>
-          <img src="/logo_fluxos_wordmark.png" alt="FluxOS" className="h-8 w-auto" />
+          <img src={`${import.meta.env.BASE_URL}logo_fluxos_wordmark.png`} alt="FluxOS" className="h-8 w-auto" />
           <p className="mt-2 text-sm text-slate-500">{usuario?.empresaNome}</p>
         </div>
         <div className="text-right">

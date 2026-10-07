@@ -24,7 +24,7 @@ export function AppLayout() {
     <div className="flex min-h-screen bg-slate-50">
       <aside className="flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
         <div className="px-5 py-5">
-          <img src="/logo_fluxos_wordmark.png" alt="FluxOS" className="h-7 w-auto" />
+          <img src={`${import.meta.env.BASE_URL}logo_fluxos_wordmark.png`} alt="FluxOS" className="h-7 w-auto" />
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 px-3">
