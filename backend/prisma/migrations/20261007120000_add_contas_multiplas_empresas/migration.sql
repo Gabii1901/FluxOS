@@ -46,8 +46,10 @@ WHERE c."email" = u."email";
 ALTER TABLE "usuarios" ALTER COLUMN "conta_id" SET NOT NULL;
 
 -- Remove o antigo índice único (empresa_id, email) e as colunas que saíram
--- de usuarios para contas.
-ALTER TABLE "usuarios" DROP CONSTRAINT "usuarios_empresa_id_email_key";
+-- de usuarios para contas. Em alguns bancos esse unique virou uma CONSTRAINT
+-- formal, em outros ficou só como INDEX — cobre os dois casos.
+ALTER TABLE "usuarios" DROP CONSTRAINT IF EXISTS "usuarios_empresa_id_email_key";
+DROP INDEX IF EXISTS "usuarios_empresa_id_email_key";
 ALTER TABLE "usuarios" DROP COLUMN "email";
 ALTER TABLE "usuarios" DROP COLUMN "senha_hash";
 
