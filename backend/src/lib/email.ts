@@ -7,6 +7,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:5173";
 
 export async function enviarEmailConfirmacao(destino: string, nome: string, token: string) {
   const link = `${FRONTEND_URL}/app/confirmar-email?token=${token}`;
+  console.log(`[email] link de confirmação gerado para ${destino}: ${link}`);
 
   if (!resend) {
     console.log(`[email] RESEND_API_KEY não configurada. Link de confirmação para ${destino}: ${link}`);
