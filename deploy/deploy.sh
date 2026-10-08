@@ -28,6 +28,9 @@ cd ../frontend
 echo "==> Frontend: instalando dependências"
 npm install
 
+echo "==> Frontend: garantindo VITE_API_URL de produção"
+echo 'VITE_API_URL=https://fluxosapp.tech/api' > .env.production
+
 echo "==> Frontend: build"
 npm run build
 
