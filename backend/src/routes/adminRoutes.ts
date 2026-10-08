@@ -11,3 +11,4 @@ adminRoutes.use(requireAuth, requireDesenvolvedor);
 adminRoutes.get("/empresas", asyncHandler(adminController.listarEmpresas));
 adminRoutes.post("/empresas", asyncHandler(adminController.criarEmpresa));
 adminRoutes.post("/empresas/:empresaId/cobranca", asyncHandler(adminController.criarCobrancaPersonalizada));
+adminRoutes.patch("/empresas/:empresaId/status", asyncHandler(adminController.atualizarStatusEmpresa));

@@ -101,6 +101,27 @@ export async function criarEmpresa(req: Request, res: Response) {
   res.status(201).json({ empresaId: empresa.id });
 }
 
+const statusSchema = z.object({
+  statusAssinatura: z.enum(["pendente", "ativo", "inadimplente", "cancelado"]),
+});
+
+export async function atualizarStatusEmpresa(req: Request, res: Response) {
+  const { empresaId } = req.params;
+  const dados = statusSchema.parse(req.body);
+
+  const empresa = await prisma.empresa.findUnique({ where: { id: empresaId } });
+  if (!empresa) {
+    return res.status(404).json({ erro: "Empresa não encontrada" });
+  }
+
+  const atualizada = await prisma.empresa.update({
+    where: { id: empresaId },
+    data: { statusAssinatura: dados.statusAssinatura },
+  });
+
+  res.json({ statusAssinatura: atualizada.statusAssinatura });
+}
+
 const cobrancaPersonalizadaSchema = z.object({
   valor: z.number().positive(),
   formaPagamento: z.enum(["cartao", "boleto"]),

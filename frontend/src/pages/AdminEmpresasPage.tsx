@@ -28,6 +28,24 @@ export function AdminEmpresasPage() {
   const [empresas, setEmpresas] = useState<EmpresaResumo[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [empresaSelecionada, setEmpresaSelecionada] = useState<EmpresaResumo | null>(null);
+  const [atualizandoId, setAtualizandoId] = useState<string | null>(null);
+
+  async function alternarBloqueio(empresa: EmpresaResumo) {
+    const novoStatus = empresa.statusAssinatura === "cancelado" ? "ativo" : "cancelado";
+    const confirmacao =
+      novoStatus === "cancelado"
+        ? `Bloquear o acesso de "${empresa.nome}"?`
+        : `Reativar o acesso de "${empresa.nome}"?`;
+    if (!window.confirm(confirmacao)) return;
+
+    setAtualizandoId(empresa.id);
+    try {
+      await api.patch(`/admin/empresas/${empresa.id}/status`, { statusAssinatura: novoStatus });
+      await carregarEmpresas();
+    } finally {
+      setAtualizandoId(null);
+    }
+  }
 
   async function carregarEmpresas() {
     setCarregando(true);
@@ -118,16 +136,32 @@ export function AdminEmpresasPage() {
                   </td>
                   <td className="px-4 py-3 text-slate-600">{empresa.formaPagamento ?? "—"}</td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEmpresaSelecionada(empresa);
-                        setView("cobranca");
-                      }}
-                      className="text-xs font-medium text-slate-900 underline"
-                    >
-                      Configurar cobrança
-                    </button>
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmpresaSelecionada(empresa);
+                          setView("cobranca");
+                        }}
+                        className="text-xs font-medium text-slate-900 underline"
+                      >
+                        Configurar cobrança
+                      </button>
+                      <button
+                        type="button"
+                        disabled={atualizandoId === empresa.id}
+                        onClick={() => alternarBloqueio(empresa)}
+                        className={`text-xs font-medium underline disabled:opacity-60 ${
+                          empresa.statusAssinatura === "cancelado" ? "text-green-700" : "text-red-700"
+                        }`}
+                      >
+                        {atualizandoId === empresa.id
+                          ? "..."
+                          : empresa.statusAssinatura === "cancelado"
+                            ? "Reativar"
+                            : "Bloquear"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
