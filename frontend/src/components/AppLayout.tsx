@@ -8,6 +8,8 @@ const NAV_ITEMS: { to: string; label: string; end?: boolean; modulo: Modulo }[] 
   { to: "/", label: "Início", end: true, modulo: "dashboard" },
   { to: "/ordens-servico", label: "Ordens de serviço", modulo: "ordens_servico" },
   { to: "/orcamentos", label: "Orçamentos", modulo: "orcamentos" },
+  { to: "/orcamento-calhas", label: "Orçamento de Calhas", modulo: "orcamento_calhas" },
+  { to: "/orcamento-calhas-materiais", label: "Materiais (calhas)", modulo: "orcamento_calhas" },
   { to: "/pagamentos-pendentes", label: "Pagamentos a prazo", modulo: "financeiro" },
   { to: "/clientes", label: "Clientes", modulo: "clientes" },
   { to: "/estoque", label: "Estoque", modulo: "estoque" },

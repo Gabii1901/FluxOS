@@ -19,13 +19,11 @@ export function NovaOsForm({ onCriada, onCancelar }: Props) {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      api.get<Cliente[]>("/clientes"),
-      api.get<UsuarioResumo[]>("/usuarios"),
-    ]).then(([clientesResp, usuariosResp]) => {
-      setClientes(clientesResp.data);
-      setColaboradores(usuariosResp.data.filter((u) => u.ativo));
-    });
+    api.get<Cliente[]>("/clientes").then((r) => setClientes(r.data)).catch(() => {});
+    api
+      .get<UsuarioResumo[]>("/usuarios")
+      .then((r) => setColaboradores(r.data.filter((u) => u.ativo)))
+      .catch(() => {});
   }, []);
 
   async function handleSubmit(evento: FormEvent) {
@@ -118,14 +116,14 @@ export function NovaOsForm({ onCriada, onCancelar }: Props) {
         <button
           type="submit"
           disabled={salvando}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60"
         >
           {salvando ? "Salvando..." : "Criar OS"}
         </button>
         <button
           type="button"
           onClick={onCancelar}
-          className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+          className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
         >
           Cancelar
         </button>

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
+import { MODULOS } from "../src/lib/permissoes";
 
 const prisma = new PrismaClient();
 
@@ -48,6 +49,18 @@ async function main() {
       },
     }),
   ]);
+
+  // Ana é a admin de demonstração — libera tudo pra ela poder testar qualquer tela.
+  await prisma.permissaoUsuario.createMany({
+    data: MODULOS.map((modulo) => ({
+      usuarioId: admin.id,
+      modulo,
+      podeVer: true,
+      podeCriar: true,
+      podeEditar: true,
+      podeApagar: true,
+    })),
+  });
 
   const clientesData = [
     { nome: "Maria Silva", telefone: "11988887777", email: "maria@example.com" },

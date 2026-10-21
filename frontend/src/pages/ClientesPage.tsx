@@ -131,7 +131,11 @@ export function ClientesPage() {
         {podeCriar && (
           <button
             onClick={() => (mostrarForm ? fecharForm() : abrirNovo())}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className={
+              mostrarForm
+                ? "rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                : "rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            }
           >
             {mostrarForm ? "Cancelar" : "Novo cliente"}
           </button>
@@ -190,7 +194,7 @@ export function ClientesPage() {
             <button
               type="submit"
               disabled={salvando}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60"
             >
               {salvando ? "Salvando..." : editandoId ? "Salvar alterações" : "Salvar cliente"}
             </button>

@@ -206,13 +206,13 @@ export function OrcamentoForm({ osId, pecasDisponiveis, onCriado, onCancelar }: 
         <button
           onClick={handleSubmit}
           disabled={salvando}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+          className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60"
         >
           {salvando ? "Salvando..." : "Enviar orçamento"}
         </button>
         <button
           onClick={onCancelar}
-          className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+          className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
         >
           Cancelar
         </button>

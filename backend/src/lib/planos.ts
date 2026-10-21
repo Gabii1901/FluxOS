@@ -8,7 +8,7 @@ export interface DefinicaoPlano {
 
 const MODULOS_BASICO: ModuloSistema[] = ["dashboard", "usuarios", "clientes", "ordens_servico"];
 const MODULOS_INTERMEDIARIO: ModuloSistema[] = [...MODULOS_BASICO, "estoque"];
-const MODULOS_AVANCADO: ModuloSistema[] = [...MODULOS_INTERMEDIARIO, "orcamentos", "financeiro"];
+const MODULOS_AVANCADO: ModuloSistema[] = [...MODULOS_INTERMEDIARIO, "orcamentos", "orcamento_calhas", "financeiro"];
 
 export const PLANOS: Record<Exclude<PlanoSistema, "personalizado">, DefinicaoPlano> = {
   basico: { nome: "Básico", valor: 69.9, modulos: MODULOS_BASICO },

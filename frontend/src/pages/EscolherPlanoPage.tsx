@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 
 interface Plano {
@@ -11,7 +12,7 @@ interface Plano {
 const PLANOS: Plano[] = [
   { id: "basico", nome: "Básico", valor: 69.9, descricao: "Clientes e ordens de serviço" },
   { id: "intermediario", nome: "Intermediário", valor: 89.9, descricao: "Básico + controle de estoque" },
-  { id: "avancado", nome: "Avançado", valor: 119.9, descricao: "Tudo: orçamentos e financeiro inclusos" },
+  { id: "avancado", nome: "Avançado", valor: 119.9, descricao: "Tudo: orçamentos, orçamento de calhas e financeiro inclusos" },
 ];
 
 interface BoletoGerado {
@@ -22,6 +23,7 @@ interface BoletoGerado {
 }
 
 export function EscolherPlanoPage() {
+  const { usuario, logout } = useAuth();
   const [planoSelecionado, setPlanoSelecionado] = useState<Plano | null>(null);
   const [formaPagamento, setFormaPagamento] = useState<"cartao" | "boleto">("cartao");
   const [diaVencimento, setDiaVencimento] = useState(10);
@@ -206,6 +208,15 @@ export function EscolherPlanoPage() {
         <h1 className="mb-2 text-center text-2xl font-bold text-slate-900">Escolha seu plano</h1>
         <p className="mb-10 text-center text-sm text-slate-500">
           Sem período de teste — o acesso libera assim que o pagamento é confirmado.
+          {usuario && (
+            <>
+              {" "}
+              <span className="text-slate-400">Entrou como {usuario.email}.</span>{" "}
+              <button type="button" onClick={logout} className="font-medium text-slate-700 underline">
+                Sair
+              </button>
+            </>
+          )}
         </p>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 
-const usuarioResumoSelect = { id: true, nome: true, email: true, papel: true } as const;
+const usuarioResumoSelect = { id: true, nome: true, papel: true } as const;
 
 const criarOsSchema = z.object({
   clienteId: z.string().uuid(),
@@ -39,6 +39,10 @@ export async function buscarPorId(req: Request, res: Response) {
       tecnico: { select: usuarioResumoSelect },
       diagnosticos: true,
       orcamentos: { include: { itens: true } },
+      orcamentosCalha: {
+        select: { id: true, numero: true, status: true, precoTotal: true, criadoEm: true, _count: { select: { itens: true } } },
+        orderBy: { criadoEm: "asc" },
+      },
       pecasUtilizadas: { include: { peca: true }, orderBy: { criadoEm: "desc" } },
       faturas: { include: { pagamentos: { orderBy: { criadoEm: "asc" } } } },
       entregas: true,

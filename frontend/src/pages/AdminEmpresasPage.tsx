@@ -31,11 +31,11 @@ export function AdminEmpresasPage() {
   const [atualizandoId, setAtualizandoId] = useState<string | null>(null);
 
   async function alternarBloqueio(empresa: EmpresaResumo) {
-    const novoStatus = empresa.statusAssinatura === "cancelado" ? "ativo" : "cancelado";
+    const novoStatus = empresa.statusAssinatura === "ativo" ? "cancelado" : "ativo";
     const confirmacao =
       novoStatus === "cancelado"
         ? `Bloquear o acesso de "${empresa.nome}"?`
-        : `Reativar o acesso de "${empresa.nome}"?`;
+        : `Liberar o acesso de "${empresa.nome}"?`;
     if (!window.confirm(confirmacao)) return;
 
     setAtualizandoId(empresa.id);
@@ -152,14 +152,14 @@ export function AdminEmpresasPage() {
                         disabled={atualizandoId === empresa.id}
                         onClick={() => alternarBloqueio(empresa)}
                         className={`text-xs font-medium underline disabled:opacity-60 ${
-                          empresa.statusAssinatura === "cancelado" ? "text-green-700" : "text-red-700"
+                          empresa.statusAssinatura === "ativo" ? "text-red-700" : "text-green-700"
                         }`}
                       >
                         {atualizandoId === empresa.id
                           ? "..."
-                          : empresa.statusAssinatura === "cancelado"
-                            ? "Reativar"
-                            : "Bloquear"}
+                          : empresa.statusAssinatura === "ativo"
+                            ? "Bloquear"
+                            : "Ativar"}
                       </button>
                     </div>
                   </td>

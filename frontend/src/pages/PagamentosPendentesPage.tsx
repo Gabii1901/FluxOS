@@ -65,6 +65,7 @@ export function PagamentosPendentesPage() {
   }
 
   async function handleRemover(pagamentoId: string) {
+    if (!window.confirm("Remover esse pagamento agendado?")) return;
     setProcessandoId(pagamentoId);
     try {
       await api.delete(`/faturas/pagamentos/${pagamentoId}`);
@@ -220,13 +221,13 @@ export function PagamentosPendentesPage() {
                           <button
                             onClick={() => handleAtualizarVencimento(pagamento.id)}
                             disabled={processando || !novoVencimento}
-                            className="text-xs font-medium text-slate-900 hover:underline disabled:opacity-40"
+                            className="text-xs font-medium text-green-700 hover:underline disabled:opacity-40"
                           >
                             Salvar
                           </button>
                           <button
                             onClick={() => setEditandoVencimentoId(null)}
-                            className="text-xs font-medium text-slate-500 hover:underline"
+                            className="text-xs font-medium text-red-700 hover:underline"
                           >
                             Cancelar
                           </button>

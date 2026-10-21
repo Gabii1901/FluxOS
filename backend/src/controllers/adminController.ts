@@ -114,9 +114,14 @@ export async function atualizarStatusEmpresa(req: Request, res: Response) {
     return res.status(404).json({ erro: "Empresa não encontrada" });
   }
 
+  // Liberação manual de uma empresa sem plano equivale a um acordo personalizado;
+  // sem plano, todos os módulos ficariam bloqueados mesmo com a assinatura ativa.
   const atualizada = await prisma.empresa.update({
     where: { id: empresaId },
-    data: { statusAssinatura: dados.statusAssinatura },
+    data: {
+      statusAssinatura: dados.statusAssinatura,
+      ...(dados.statusAssinatura === "ativo" && !empresa.plano ? { plano: "personalizado" as const } : {}),
+    },
   });
 
   res.json({ statusAssinatura: atualizada.statusAssinatura });

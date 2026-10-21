@@ -21,7 +21,7 @@ const orcamentoInclude = {
     include: {
       cliente: true,
       item: true,
-      tecnico: { select: { id: true, nome: true, email: true, papel: true } },
+      tecnico: { select: { id: true, nome: true, papel: true } },
       empresa: { select: { id: true, nome: true } },
     },
   },

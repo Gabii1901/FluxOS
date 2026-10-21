@@ -22,17 +22,22 @@ export async function criar(req: Request, res: Response) {
     return res.status(409).json({ erro: "Esta OS já possui uma fatura" });
   }
 
-  const orcamentoAprovado = await prisma.orcamento.findFirst({
-    where: { osId, status: "aprovado" },
-    orderBy: { respondidoEm: "desc" },
-  });
-  if (!orcamentoAprovado) {
+  // Fatura = último orçamento normal aprovado + todos os orçamentos de calhas aprovados da OS.
+  const [orcamentoAprovado, orcamentosCalhaAprovados] = await Promise.all([
+    prisma.orcamento.findFirst({ where: { osId, status: "aprovado" }, orderBy: { respondidoEm: "desc" } }),
+    prisma.orcamentoCalha.findMany({ where: { osId, status: "aprovado" } }),
+  ]);
+  if (!orcamentoAprovado && orcamentosCalhaAprovados.length === 0) {
     return res.status(400).json({ erro: "É necessário um orçamento aprovado para gerar a fatura" });
   }
 
+  const valorTotal =
+    Number(orcamentoAprovado?.valorTotal ?? 0) +
+    orcamentosCalhaAprovados.reduce((soma, o) => soma + Number(o.precoTotal), 0);
+
   const fatura = await prisma.$transaction(async (tx) => {
     const novaFatura = await tx.fatura.create({
-      data: { osId, valorTotal: orcamentoAprovado.valorTotal },
+      data: { osId, valorTotal },
       include: { pagamentos: true },
     });
 
@@ -135,7 +140,7 @@ export async function criarPagamento(req: Request, res: Response) {
     .$transaction(async (tx) => {
       // Lock the fatura row so concurrent payments can't both read the same
       // running total and together overshoot the invoice's saldo.
-      await tx.$executeRaw`SELECT id FROM faturas WHERE id = ${faturaId}::uuid FOR UPDATE`;
+      await tx.$executeRaw`SELECT id FROM faturas WHERE id = ${faturaId} FOR UPDATE`;
 
       const fatura = await tx.fatura.findUniqueOrThrow({
         where: { id: faturaId },
@@ -222,7 +227,7 @@ export async function darBaixa(req: Request, res: Response) {
       if (!pagamentoAtual) return null;
       if (pagamentoAtual.status !== "pendente") return pagamentoAtual;
 
-      await tx.$executeRaw`SELECT id FROM faturas WHERE id = ${pagamentoAtual.faturaId}::uuid FOR UPDATE`;
+      await tx.$executeRaw`SELECT id FROM faturas WHERE id = ${pagamentoAtual.faturaId} FOR UPDATE`;
 
       const fatura = await tx.fatura.findUniqueOrThrow({
         where: { id: pagamentoAtual.faturaId },

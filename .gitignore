@@ -15,3 +15,6 @@ backend/uploads/
 # OS / editor junk
 .DS_Store
 Thumbs.db
+
+# Prints e logs do navegador de testes (Playwright MCP)
+.playwright-mcp/

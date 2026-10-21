@@ -5,6 +5,7 @@ export const MODULOS: ModuloSistema[] = [
   "dashboard",
   "ordens_servico",
   "orcamentos",
+  "orcamento_calhas",
   "clientes",
   "estoque",
   "usuarios",

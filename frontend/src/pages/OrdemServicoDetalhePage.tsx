@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { OrcamentoForm } from "../components/OrcamentoForm";
 import { StatusBadge } from "../components/StatusBadge";
 import { usePermissao } from "../hooks/usePermissao";
@@ -11,6 +11,7 @@ import {
   type StatusOs,
 } from "../types/ordemServico";
 import { STATUS_ORCAMENTO_LABEL } from "../types/orcamento";
+import { STATUS_ORCAMENTO_CALHA_LABEL, type OrcamentoCalhaResumo } from "../types/calha";
 import { STATUS_PAGAMENTO_LABEL, STATUS_PARCELA_LABEL } from "../types/faturamento";
 import type { Peca } from "../types/peca";
 
@@ -24,8 +25,15 @@ function formatarData(valor: string) {
 
 export function OrdemServicoDetalhePage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { pode } = usePermissao();
   const podeEditarOs = pode("ordens_servico", "editar");
+  const podeVerEstoque = pode("estoque", "ver");
+  const podeVerOrcamentos = pode("orcamentos", "ver");
+  const podeVerCalhas = pode("orcamento_calhas", "ver");
+  const podeCriarCalhas = pode("orcamento_calhas", "criar");
+  const podeEditarCalhas = pode("orcamento_calhas", "editar");
+  const podeVerFinanceiro = pode("financeiro", "ver");
   const podeCriarOrcamento = pode("orcamentos", "criar");
   const podeEditarOrcamento = pode("orcamentos", "editar");
   const podeCriarFinanceiro = pode("financeiro", "criar");
@@ -46,6 +54,12 @@ export function OrdemServicoDetalhePage() {
 
   const [mostrarFormOrcamento, setMostrarFormOrcamento] = useState(false);
   const [atualizandoOrcamentoId, setAtualizandoOrcamentoId] = useState<string | null>(null);
+
+  const [criandoCalhas, setCriandoCalhas] = useState(false);
+  const [mostrarVincularCalhas, setMostrarVincularCalhas] = useState(false);
+  const [calhasDisponiveis, setCalhasDisponiveis] = useState<OrcamentoCalhaResumo[]>([]);
+  const [calhaParaVincular, setCalhaParaVincular] = useState("");
+  const [erroCalhas, setErroCalhas] = useState<string | null>(null);
 
   const [gerandoFatura, setGerandoFatura] = useState(false);
   const [erroFatura, setErroFatura] = useState<string | null>(null);
@@ -76,7 +90,7 @@ export function OrdemServicoDetalhePage() {
 
   useEffect(() => {
     carregar().finally(() => setCarregando(false));
-    api.get<Peca[]>("/pecas").then((resposta) => setPecasDisponiveis(resposta.data));
+    api.get<Peca[]>("/pecas").then((resposta) => setPecasDisponiveis(resposta.data)).catch(() => {});
   }, [id]);
 
   async function handleAdicionarPeca() {
@@ -99,6 +113,7 @@ export function OrdemServicoDetalhePage() {
   }
 
   async function handleRemoverPeca(itemId: string) {
+    if (!window.confirm("Remover essa peça da OS? Ela volta para o estoque.")) return;
     await api.delete(`/ordens-servico/${id}/pecas/${itemId}`);
     await carregar();
   }
@@ -107,6 +122,64 @@ export function OrdemServicoDetalhePage() {
     setAtualizandoOrcamentoId(orcamentoId);
     try {
       await api.patch(`/orcamentos/${orcamentoId}/status`, { status });
+      await carregar();
+    } finally {
+      setAtualizandoOrcamentoId(null);
+    }
+  }
+
+  async function handleNovoOrcamentoCalhas() {
+    setErroCalhas(null);
+    setCriandoCalhas(true);
+    try {
+      const resposta = await api.post("/calhas/orcamentos", { osId: id });
+      navigate(`/orcamento-calhas/${resposta.data.id}`);
+    } catch (e: any) {
+      setErroCalhas(e?.response?.data?.erro ?? "Não foi possível criar o orçamento de calhas.");
+      setCriandoCalhas(false);
+    }
+  }
+
+  async function handleAbrirVincularCalhas() {
+    setErroCalhas(null);
+    setCalhaParaVincular("");
+    setMostrarVincularCalhas(true);
+    try {
+      const resposta = await api.get<OrcamentoCalhaResumo[]>("/calhas/orcamentos?semOs=true");
+      // Só orçamentos do mesmo cliente da OS (ou ainda sem cliente), para não trocar o cliente de um orçamento alheio.
+      setCalhasDisponiveis(resposta.data.filter((o) => !o.cliente || o.cliente.id === os?.cliente.id));
+    } catch {
+      setCalhasDisponiveis([]);
+    }
+  }
+
+  async function handleVincularCalhas() {
+    if (!calhaParaVincular) return;
+    setErroCalhas(null);
+    try {
+      await api.patch(`/calhas/orcamentos/${calhaParaVincular}`, { osId: id });
+      setMostrarVincularCalhas(false);
+      await carregar();
+    } catch (e: any) {
+      setErroCalhas(e?.response?.data?.erro ?? "Não foi possível vincular o orçamento.");
+    }
+  }
+
+  async function handleResponderOrcamentoCalhas(orcamentoId: string, status: "aprovado" | "recusado") {
+    setAtualizandoOrcamentoId(orcamentoId);
+    try {
+      await api.patch(`/calhas/orcamentos/${orcamentoId}`, { status });
+      await carregar();
+    } finally {
+      setAtualizandoOrcamentoId(null);
+    }
+  }
+
+  async function handleDesvincularCalhas(orcamentoId: string) {
+    if (!window.confirm("Desvincular esse orçamento de calhas da OS? Ele continua existindo na lista de calhas.")) return;
+    setAtualizandoOrcamentoId(orcamentoId);
+    try {
+      await api.patch(`/calhas/orcamentos/${orcamentoId}`, { osId: null });
       await carregar();
     } finally {
       setAtualizandoOrcamentoId(null);
@@ -172,6 +245,7 @@ export function OrdemServicoDetalhePage() {
   }
 
   async function handleRemoverPagamento(pagamentoId: string) {
+    if (!window.confirm("Remover esse pagamento agendado?")) return;
     setAtualizandoPagamentoId(pagamentoId);
     try {
       await api.delete(`/faturas/pagamentos/${pagamentoId}`);
@@ -214,6 +288,7 @@ export function OrdemServicoDetalhePage() {
   }
 
   async function handleRemoverFoto(fotoId: string) {
+    if (!window.confirm("Remover essa foto?")) return;
     await api.delete(`/ordens-servico/${id}/fotos/${fotoId}`);
     await carregar();
   }
@@ -244,6 +319,15 @@ export function OrdemServicoDetalhePage() {
   if (!os) {
     return <p className="px-6 py-10 text-sm text-red-600">Ordem de serviço não encontrada.</p>;
   }
+
+  // Mesma regra do backend: último orçamento normal aprovado + todos os de calhas aprovados.
+  const ultimoNormalAprovado = os.orcamentos
+    .filter((o) => o.status === "aprovado")
+    .sort((a, b) => (b.respondidoEm ?? "").localeCompare(a.respondidoEm ?? ""))[0];
+  const calhasAprovados = os.orcamentosCalha.filter((o) => o.status === "aprovado");
+  const temOrcamentoAprovado = !!ultimoNormalAprovado || calhasAprovados.length > 0;
+  const valorAFaturar =
+    Number(ultimoNormalAprovado?.valorTotal ?? 0) + calhasAprovados.reduce((soma, o) => soma + Number(o.precoTotal), 0);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
@@ -328,6 +412,7 @@ export function OrdemServicoDetalhePage() {
       </div>
       )}
 
+      {podeVerEstoque && (
       <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-3 text-sm font-semibold text-slate-900">Peças utilizadas</h2>
 
@@ -397,19 +482,73 @@ export function OrdemServicoDetalhePage() {
           </ul>
         )}
       </div>
+      )}
 
+      {(podeVerOrcamentos || podeVerCalhas) && (
       <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-slate-900">Orçamentos</h2>
-          {podeCriarOrcamento && (
-            <button
-              onClick={() => setMostrarFormOrcamento((valor) => !valor)}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900"
-            >
-              {mostrarFormOrcamento ? "Cancelar" : "+ Novo orçamento"}
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-4">
+            {podeCriarOrcamento && (
+              <button
+                onClick={() => setMostrarFormOrcamento((valor) => !valor)}
+                className={mostrarFormOrcamento ? "text-sm font-medium text-red-700 hover:text-red-800" : "text-sm font-medium text-slate-600 hover:text-slate-900"}
+              >
+                {mostrarFormOrcamento ? "Cancelar" : "+ Orçamento normal"}
+              </button>
+            )}
+            {podeCriarCalhas && (
+              <button
+                onClick={handleNovoOrcamentoCalhas}
+                disabled={criandoCalhas}
+                className="text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-40"
+              >
+                {criandoCalhas ? "Criando..." : "+ Orçamento de calhas"}
+              </button>
+            )}
+            {podeEditarCalhas && !mostrarVincularCalhas && (
+              <button onClick={handleAbrirVincularCalhas} className="text-sm font-medium text-slate-600 hover:text-slate-900">
+                Vincular orçamento de calhas
+              </button>
+            )}
+          </div>
         </div>
+
+        {mostrarVincularCalhas && (
+          <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="mb-1 block text-xs font-medium text-slate-600">Orçamento de calhas sem OS</label>
+              <select
+                value={calhaParaVincular}
+                onChange={(e) => setCalhaParaVincular(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+              >
+                <option value="">
+                  {calhasDisponiveis.length === 0 ? "Nenhum orçamento de calhas disponível" : "Selecione..."}
+                </option>
+                {calhasDisponiveis.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    #{o.numero} · {o.cliente?.nome ?? "Sem cliente"} · {formatarMoeda(Number(o.precoTotal))}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleVincularCalhas}
+              disabled={!calhaParaVincular}
+              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-40"
+            >
+              Vincular
+            </button>
+            <button
+              onClick={() => setMostrarVincularCalhas(false)}
+              className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
+        {erroCalhas && <p className="mb-3 text-sm text-red-600">{erroCalhas}</p>}
 
         {mostrarFormOrcamento && podeCriarOrcamento && (
           <OrcamentoForm
@@ -423,9 +562,11 @@ export function OrdemServicoDetalhePage() {
           />
         )}
 
-        {os.orcamentos.length === 0 ? (
+        {(podeVerOrcamentos ? os.orcamentos.length : 0) + (podeVerCalhas ? os.orcamentosCalha.length : 0) === 0 && (
           <p className="text-sm text-slate-500">Nenhum orçamento criado ainda.</p>
-        ) : (
+        )}
+
+        {podeVerOrcamentos && os.orcamentos.length > 0 && (
           <ul className="divide-y divide-slate-100">
             {os.orcamentos.map((orcamento) => (
               <li key={orcamento.id} className="flex items-center justify-between py-3 text-sm">
@@ -470,22 +611,85 @@ export function OrdemServicoDetalhePage() {
             ))}
           </ul>
         )}
-      </div>
 
+        {podeVerCalhas && os.orcamentosCalha.length > 0 && (
+          <ul className="divide-y divide-slate-100 border-t border-slate-100">
+            {os.orcamentosCalha.map((orcamento) => (
+              <li key={orcamento.id} className="flex items-center justify-between py-3 text-sm">
+                <div>
+                  <p className="font-medium text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+                    {formatarMoeda(Number(orcamento.precoTotal))}
+                    <span className="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      Calhas #{orcamento.numero}
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {STATUS_ORCAMENTO_CALHA_LABEL[orcamento.status]} · {orcamento._count.itens}{" "}
+                    {orcamento._count.itens === 1 ? "item" : "itens"} · criado em{" "}
+                    {new Date(orcamento.criadoEm).toLocaleDateString("pt-BR")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {(orcamento.status === "rascunho" || orcamento.status === "enviado") && podeEditarCalhas && (
+                    <>
+                      <button
+                        onClick={() => handleResponderOrcamentoCalhas(orcamento.id, "aprovado")}
+                        disabled={atualizandoOrcamentoId === orcamento.id}
+                        className="text-xs font-medium text-emerald-600 hover:underline disabled:opacity-40"
+                      >
+                        Aprovar
+                      </button>
+                      <button
+                        onClick={() => handleResponderOrcamentoCalhas(orcamento.id, "recusado")}
+                        disabled={atualizandoOrcamentoId === orcamento.id}
+                        className="text-xs font-medium text-red-600 hover:underline disabled:opacity-40"
+                      >
+                        Recusar
+                      </button>
+                    </>
+                  )}
+                  <Link to={`/orcamento-calhas/${orcamento.id}`} className="text-xs font-medium text-slate-600 hover:underline">
+                    Abrir
+                  </Link>
+                  <Link
+                    to={`/orcamento-calhas/${orcamento.id}/imprimir`}
+                    target="_blank"
+                    className="text-xs font-medium text-slate-600 hover:underline"
+                  >
+                    Imprimir
+                  </Link>
+                  {podeEditarCalhas && os.faturas.length === 0 && (
+                    <button
+                      onClick={() => handleDesvincularCalhas(orcamento.id)}
+                      disabled={atualizandoOrcamentoId === orcamento.id}
+                      className="text-xs font-medium text-slate-400 hover:text-red-600 hover:underline disabled:opacity-40"
+                    >
+                      Desvincular
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      )}
+
+      {podeVerFinanceiro && (
       <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-3 text-sm font-semibold text-slate-900">Faturamento</h2>
 
         {os.faturas.length === 0 ? (
           <>
             <p className="mb-3 text-sm text-slate-500">
-              {os.orcamentos.some((o) => o.status === "aprovado")
-                ? "Gere a fatura a partir do orçamento aprovado."
+              {temOrcamentoAprovado
+                ? `Gere a fatura a partir dos orçamentos aprovados (${formatarMoeda(valorAFaturar)}).`
                 : "É necessário um orçamento aprovado para gerar a fatura."}
             </p>
             {podeCriarFinanceiro && (
               <button
                 onClick={handleGerarFatura}
-                disabled={gerandoFatura || !os.orcamentos.some((o) => o.status === "aprovado")}
+                disabled={gerandoFatura || !temOrcamentoAprovado}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-40"
               >
                 {gerandoFatura ? "Gerando..." : "Gerar fatura"}
@@ -554,13 +758,13 @@ export function OrdemServicoDetalhePage() {
                                   <button
                                     onClick={() => handleAtualizarVencimento(pagamento.id)}
                                     disabled={atualizandoPagamentoId === pagamento.id || !novoVencimento}
-                                    className="text-xs font-medium text-slate-900 hover:underline disabled:opacity-40"
+                                    className="text-xs font-medium text-green-700 hover:underline disabled:opacity-40"
                                   >
                                     Salvar
                                   </button>
                                   <button
                                     onClick={() => setEditandoVencimentoId(null)}
-                                    className="text-xs font-medium text-slate-500 hover:underline"
+                                    className="text-xs font-medium text-red-700 hover:underline"
                                   >
                                     Cancelar
                                   </button>
@@ -665,6 +869,7 @@ export function OrdemServicoDetalhePage() {
           })
         )}
       </div>
+      )}
 
       <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-3 text-sm font-semibold text-slate-900">Fotos</h2>
@@ -680,9 +885,17 @@ export function OrdemServicoDetalhePage() {
                 if (arquivo) handleEnviarFoto(arquivo);
               }}
               disabled={enviandoFoto}
-              className="text-sm text-slate-600"
+              className="hidden"
             />
-            {enviandoFoto && <span className="text-xs text-slate-500">Enviando...</span>}
+            <button
+              type="button"
+              onClick={() => inputFotoRef.current?.click()}
+              disabled={enviandoFoto}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-900 disabled:opacity-60"
+            >
+              {enviandoFoto ? "Enviando..." : "+ Adicionar foto"}
+            </button>
+            <span className="text-xs text-slate-400">JPG, PNG ou WEBP</span>
           </div>
         )}
         {erroFoto && <p className="mb-3 text-sm text-red-600">{erroFoto}</p>}

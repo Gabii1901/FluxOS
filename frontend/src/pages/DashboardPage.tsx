@@ -7,6 +7,17 @@ import { useAuth } from "../contexts/AuthContext";
 import { usePermissao } from "../hooks/usePermissao";
 import { api } from "../lib/api";
 import { STATUS_LABEL, TODOS_STATUS, type OrdemServico, type StatusOs } from "../types/ordemServico";
+import type { Modulo } from "../types/permissao";
+
+// Mostrados no Início para quem não tem acesso às OS (o resumo depende delas).
+const ATALHOS: { to: string; label: string; modulo: Modulo }[] = [
+  { to: "/orcamento-calhas", label: "Orçamento de Calhas", modulo: "orcamento_calhas" },
+  { to: "/orcamentos", label: "Orçamentos", modulo: "orcamentos" },
+  { to: "/clientes", label: "Clientes", modulo: "clientes" },
+  { to: "/estoque", label: "Estoque", modulo: "estoque" },
+  { to: "/pagamentos-pendentes", label: "Pagamentos a prazo", modulo: "financeiro" },
+  { to: "/usuarios", label: "Usuários", modulo: "usuarios" },
+];
 
 const STATUS_ABERTOS: StatusOs[] = [
   "aberta",
@@ -28,16 +39,21 @@ export function DashboardPage() {
   const { usuario } = useAuth();
   const { pode } = usePermissao();
   const podeVerFinanceiro = pode("financeiro", "ver");
+  const podeVerOs = pode("ordens_servico", "ver");
   const [ordens, setOrdens] = useState<OrdemServico[]>([]);
   const [resumoFinanceiro, setResumoFinanceiro] = useState<ResumoFinanceiroData | null>(null);
-  const [carregando, setCarregando] = useState(true);
+  const [carregando, setCarregando] = useState(podeVerOs);
 
   useEffect(() => {
+    if (!podeVerOs) return;
     api
       .get<OrdemServico[]>("/ordens-servico")
       .then((resposta) => setOrdens(resposta.data))
+      .catch(() => {})
       .finally(() => setCarregando(false));
-  }, []);
+  }, [podeVerOs]);
+
+  const atalhos = ATALHOS.filter((a) => pode(a.modulo, "ver"));
 
   useEffect(() => {
     if (!podeVerFinanceiro) return;
@@ -101,7 +117,26 @@ export function DashboardPage() {
         <p className="mt-1 text-sm text-slate-500">Resumo do que está acontecendo agora no FluxOS.</p>
       </header>
 
-      {carregando ? (
+      {!podeVerOs ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <p className="mb-4 text-sm font-medium text-slate-700">Seus atalhos</p>
+          {atalhos.length === 0 ? (
+            <p className="text-sm text-slate-500">Nenhuma tela liberada ainda. Fale com um administrador.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {atalhos.map((a) => (
+                <Link
+                  key={a.to}
+                  to={a.to}
+                  className="rounded-lg border border-slate-200 px-4 py-4 text-sm font-medium text-slate-900 hover:border-slate-900"
+                >
+                  {a.label} →
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : carregando ? (
         <p className="text-sm text-slate-500">Carregando...</p>
       ) : (
         <>

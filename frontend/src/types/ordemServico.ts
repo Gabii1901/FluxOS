@@ -1,3 +1,4 @@
+import type { StatusOrcamentoCalha } from "./calha";
 import type { Cliente } from "./cliente";
 import type { Entrega, Fatura, Garantia } from "./faturamento";
 import type { Orcamento } from "./orcamento";
@@ -72,11 +73,21 @@ export interface FotoOs {
   criadoEm: string;
 }
 
+export interface OrcamentoCalhaDaOs {
+  id: string;
+  numero: number;
+  status: StatusOrcamentoCalha;
+  precoTotal: string;
+  criadoEm: string;
+  _count: { itens: number };
+}
+
 export interface OrdemServicoDetalhe extends OrdemServico {
   atendente: Usuario | null;
   statusHistorico: StatusHistoricoItem[];
   pecasUtilizadas: OsPecaUtilizada[];
   orcamentos: Orcamento[];
+  orcamentosCalha: OrcamentoCalhaDaOs[];
   faturas: Fatura[];
   entregas: Entrega[];
   garantias: Garantia[];

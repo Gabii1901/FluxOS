@@ -42,6 +42,9 @@ model Empresa {
   ordensServico    OrdemServico[]
   pecas            Peca[]
   cobrancas        CobrancaPlano[]
+  materiaisChapa   MaterialChapa[]
+  perfisCalha      PerfilCalha[]
+  orcamentosCalha  OrcamentoCalha[]
 
   @@map("empresas")
 }
@@ -102,6 +105,7 @@ enum ModuloSistema {
   estoque
   usuarios
   financeiro
+  orcamento_calhas
 
   @@map("modulo_sistema")
 }
@@ -129,6 +133,9 @@ model Usuario {
   nome      String
   papel     PapelUsuario
   ativo     Boolean      @default(true)
+  // Usado como valor padrão ao incluir esse usuário na mão de obra de um
+  // orçamento de calhas — pode ser sobrescrito por orçamento.
+  valorHora Decimal?     @map("valor_hora") @db.Decimal(10, 2)
   criadoEm  DateTime     @default(now()) @map("criado_em")
 
   conta   Conta   @relation(fields: [contaId], references: [id], onDelete: Cascade)
@@ -143,6 +150,7 @@ model Usuario {
   statusHistorico      OsStatusHistorico[]
   movimentacoesEstoque MovimentacaoEstoque[]
   permissoes           PermissaoUsuario[]
+  maoDeObraCalha       OrcamentoCalhaMaoDeObra[]
 
   @@unique([contaId, empresaId])
   @@map("usuarios")
@@ -183,6 +191,7 @@ model Cliente {
   empresa          Empresa           @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   itensAtendimento ItemAtendimento[]
   ordensServico    OrdemServico[]
+  orcamentosCalha  OrcamentoCalha[]
 
   @@index([empresaId])
   @@map("clientes")
@@ -261,6 +270,7 @@ model OrdemServico {
   statusHistorico   OsStatusHistorico[]
   diagnosticos      Diagnostico[]
   orcamentos        Orcamento[]
+  orcamentosCalha   OrcamentoCalha[]
   pecasUtilizadas   OsPecaUtilizada[]
   apontamentosHoras ApontamentoHoras[]
   qaRevisoes        QaRevisao[]
@@ -552,4 +562,141 @@ model Garantia {
   ordemServico OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
 
   @@map("garantias")
+}
+
+// ============================================================
+// ORÇAMENTO DE CALHAS (calheiros — chapas, perfis e cálculo de
+// corte/mão de obra). Módulo independente do Orçamento genérico
+// ligado à OS; usa a mesma permissão de módulo "orcamentos".
+// ============================================================
+
+enum TipoServicoCalha {
+  calha
+  algerosa
+  capeamento
+  rufo
+  pingadeira
+  tubulacao
+  colarinho
+  exaustor_eolico
+  adicional
+  venda
+
+  @@map("tipo_servico_calha")
+}
+
+enum TipoMedidaOrcamento {
+  metro
+  unidade
+
+  @@map("tipo_medida_orcamento")
+}
+
+enum StatusOrcamentoCalha {
+  rascunho
+  enviado
+  aprovado
+  recusado
+
+  @@map("status_orcamento_calha")
+}
+
+model MaterialChapa {
+  id          String   @id @default(uuid())
+  empresaId   String   @map("empresa_id")
+  nome        String
+  espessuraMm Decimal? @map("espessura_mm") @db.Decimal(6, 2)
+  tipo        String? // ex: Galvalume, Galvanizado, Alumínio, Inox
+  cor         String?
+  precoM2     Decimal  @default(0) @map("preco_m2") @db.Decimal(10, 2)
+  ativo       Boolean  @default(true)
+  criadoEm    DateTime @default(now()) @map("criado_em")
+
+  empresa Empresa              @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  itens   OrcamentoCalhaItem[]
+
+  @@map("materiais_chapa")
+}
+
+// Perfil de corte transversal (formato da calha). padrao=true são os
+// modelos de fábrica oferecidos a toda empresa (empresaId nulo);
+// cada empresa também pode salvar os próprios ("Modelos").
+model PerfilCalha {
+  id        String   @id @default(uuid())
+  empresaId String?  @map("empresa_id")
+  nome      String
+  descricao String?
+  segmentos Json // [{ nome: "Aba esq.", valorCm: 1.3 }, ...]
+  padrao    Boolean  @default(false)
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  empresa Empresa?             @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  itens   OrcamentoCalhaItem[]
+
+  @@map("perfis_calha")
+}
+
+model OrcamentoCalha {
+  id                  String               @id @default(uuid())
+  empresaId           String               @map("empresa_id")
+  numero              Int                  @default(autoincrement())
+  clienteId           String?              @map("cliente_id")
+  osId                String?              @map("os_id")
+  status              StatusOrcamentoCalha @default(rascunho)
+  acrescimoPercentual Decimal              @default(30) @map("acrescimo_percentual") @db.Decimal(6, 2)
+  custoTotal          Decimal              @default(0) @map("custo_total") @db.Decimal(12, 2)
+  precoTotal          Decimal              @default(0) @map("preco_total") @db.Decimal(12, 2)
+  criadoEm            DateTime             @default(now()) @map("criado_em")
+  atualizadoEm        DateTime             @default(now()) @updatedAt @map("atualizado_em")
+
+  empresa   Empresa                   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente   Cliente?                  @relation(fields: [clienteId], references: [id])
+  os        OrdemServico?             @relation(fields: [osId], references: [id], onDelete: SetNull)
+  itens     OrcamentoCalhaItem[]
+  maoDeObra OrcamentoCalhaMaoDeObra[]
+
+  @@index([osId])
+  @@map("orcamentos_calha")
+}
+
+model OrcamentoCalhaItem {
+  id                String              @id @default(uuid())
+  orcamentoId       String              @map("orcamento_id")
+  tipoServico       TipoServicoCalha    @map("tipo_servico")
+  descricao         String? // usado quando tipoServico = adicional/venda
+  tipoMedida        TipoMedidaOrcamento @default(metro) @map("tipo_medida")
+  quantidade        Decimal             @default(0) @db.Decimal(10, 2)
+  unidadeQuantidade String              @default("m") @map("unidade_quantidade")
+  corteLargura      Decimal?            @map("corte_largura") @db.Decimal(10, 2)
+  unidadeCorte      String?             @map("unidade_corte")
+  materialId        String?             @map("material_id")
+  perfilId          String?             @map("perfil_id")
+  segmentosCustom   Json?               @map("segmentos_custom")
+  valorUnitario     Decimal?            @map("valor_unitario") @db.Decimal(10, 2) // venda/adicional
+  acrescimoPercentual Decimal           @default(30) @map("acrescimo_percentual") @db.Decimal(6, 2)
+  custoCalculado    Decimal             @default(0) @map("custo_calculado") @db.Decimal(12, 2)
+  precoCalculado    Decimal             @default(0) @map("preco_calculado") @db.Decimal(12, 2)
+  criadoEm          DateTime            @default(now()) @map("criado_em")
+
+  orcamento OrcamentoCalha @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  material  MaterialChapa? @relation(fields: [materialId], references: [id])
+  perfil    PerfilCalha?   @relation(fields: [perfilId], references: [id])
+
+  @@map("orcamento_calha_itens")
+}
+
+model OrcamentoCalhaMaoDeObra {
+  id          String   @id @default(uuid())
+  orcamentoId String   @map("orcamento_id")
+  usuarioId   String   @map("usuario_id")
+  valorHora   Decimal  @map("valor_hora") @db.Decimal(10, 2)
+  horas       Decimal  @default(1) @db.Decimal(6, 2)
+  custoTotal  Decimal  @default(0) @map("custo_total") @db.Decimal(12, 2)
+  criadoEm    DateTime @default(now()) @map("criado_em")
+
+  orcamento OrcamentoCalha @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  usuario   Usuario        @relation(fields: [usuarioId], references: [id])
+
+  @@map("orcamento_calha_mao_de_obra")
 }

@@ -68,7 +68,11 @@ export function OrdensServicoPage() {
         {podeCriar && (
           <button
             onClick={() => setMostrarForm((valor) => !valor)}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className={
+              mostrarForm
+                ? "rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+                : "rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            }
           >
             {mostrarForm ? "Cancelar" : "Nova OS"}
           </button>
