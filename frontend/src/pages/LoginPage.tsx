@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { lerEmailLembrado, salvarEmailLembrado } from "../lib/sessao";
 import { Link, useNavigate } from "react-router-dom";
 import {
   EmailNaoConfirmadoError,
@@ -10,7 +11,8 @@ import { api } from "../lib/api";
 export function LoginPage() {
   const { login, selecionarEmpresa } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(lerEmailLembrado);
+  const [lembrar, setLembrar] = useState(() => lerEmailLembrado() !== "");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -29,7 +31,8 @@ export function LoginPage() {
     setReenviado(false);
     setEnviando(true);
     try {
-      const resultado = await login(email, senha);
+      const resultado = await login(email, senha, lembrar);
+      salvarEmailLembrado(lembrar ? email.trim() : null);
       if (resultado.tipo === "escolher_empresa") {
         setPreAuthToken(resultado.preAuthToken);
         setEmpresas(resultado.empresas);
@@ -119,7 +122,7 @@ export function LoginPage() {
               id="email"
               type="email"
               required
-              autoFocus
+              autoFocus={!email}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
@@ -134,13 +137,25 @@ export function LoginPage() {
             <input
               id="senha"
               type="password"
+              autoComplete="current-password"
               required
+              autoFocus={!!email}
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
               placeholder="••••••••"
             />
           </div>
+
+          <label className="-mt-2 mb-5 flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={lembrar}
+              onChange={(e) => setLembrar(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            Lembrar de mim
+          </label>
 
           {erro && (
             <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>

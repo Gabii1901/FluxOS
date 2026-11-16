@@ -7,7 +7,7 @@ import { MODULOS, montarMapaPermissoes } from "../lib/permissoes";
 import { prisma } from "../lib/prisma";
 import { gerarTokenVerificacao, hashToken } from "../lib/tokens";
 
-async function montarRespostaLogin(usuarioId: string) {
+async function montarRespostaLogin(usuarioId: string, lembrar = false) {
   const usuario = await prisma.usuario.findUniqueOrThrow({
     where: { id: usuarioId },
     include: {
@@ -20,7 +20,7 @@ async function montarRespostaLogin(usuarioId: string) {
     usuarioId: usuario.id,
     empresaId: usuario.empresaId,
     papel: usuario.papel,
-  });
+  }, lembrar);
 
   const permissoes = await montarMapaPermissoes(usuario.id, usuario.papel);
 
@@ -179,10 +179,11 @@ export async function reenviarConfirmacao(req: Request, res: Response) {
 const loginSchema = z.object({
   email: z.string().email(),
   senha: z.string().min(1),
+  lembrar: z.boolean().optional(),
 });
 
 export async function login(req: Request, res: Response) {
-  const { email, senha } = loginSchema.parse(req.body);
+  const { email, senha, lembrar = false } = loginSchema.parse(req.body);
 
   const conta = await prisma.conta.findUnique({ where: { email: email.toLowerCase().trim() } });
   if (!conta || !(await bcrypt.compare(senha, conta.senhaHash))) {
@@ -204,10 +205,10 @@ export async function login(req: Request, res: Response) {
   }
 
   if (vinculos.length === 1) {
-    return res.json(await montarRespostaLogin(vinculos[0].id));
+    return res.json(await montarRespostaLogin(vinculos[0].id, lembrar));
   }
 
-  const preAuthToken = assinarPreAuthToken({ contaId: conta.id });
+  const preAuthToken = assinarPreAuthToken({ contaId: conta.id, lembrar });
   res.json({
     precisaEscolherEmpresa: true,
     preAuthToken,
@@ -224,8 +225,11 @@ export async function selecionarEmpresa(req: Request, res: Response) {
   const { preAuthToken, empresaId } = selecionarEmpresaSchema.parse(req.body);
 
   let contaId: string;
+  let lembrar = false;
   try {
-    contaId = verificarPreAuthToken(preAuthToken).contaId;
+    const preAuth = verificarPreAuthToken(preAuthToken);
+    contaId = preAuth.contaId;
+    lembrar = preAuth.lembrar === true;
   } catch {
     return res.status(401).json({ erro: "Sessão de login expirada, faça login novamente" });
   }
@@ -237,7 +241,7 @@ export async function selecionarEmpresa(req: Request, res: Response) {
     return res.status(403).json({ erro: "Você não tem acesso a esta empresa" });
   }
 
-  res.json(await montarRespostaLogin(vinculo.id));
+  res.json(await montarRespostaLogin(vinculo.id, lembrar));
 }
 
 export async function me(req: Request, res: Response) {

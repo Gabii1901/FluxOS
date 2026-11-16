@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { CampoMoeda } from "../components/CampoMoeda";
 import { usePermissao } from "../hooks/usePermissao";
 import { api } from "../lib/api";
+import { consultarCnpj, formatarDocumento, resumoCnpj } from "../lib/cnpj";
 import {
   FORMAS_PAGAMENTO,
   STATUS_CONTA_LABEL,
   hojeIso,
   statusDaConta,
   type CategoriaContaPagar,
-  type ConsultaCnpj,
   type ContaPagar,
   type ResumoContasPagar,
   type StatusContaPagar,
@@ -20,13 +20,6 @@ function formatarMoeda(valor: number) {
 
 function formatarData(valor: string) {
   return new Date(valor).toLocaleDateString("pt-BR", { timeZone: "UTC" });
-}
-
-function formatarDocumento(valor: string) {
-  const d = valor.replace(/\D/g, "");
-  if (d.length === 14) return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
-  if (d.length === 11) return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
-  return valor;
 }
 
 const STATUS_STYLE: Record<StatusContaPagar, string> = {
@@ -179,24 +172,18 @@ export function ContasPagarPage() {
   }
 
   async function handleBuscarCnpj() {
-    const cnpj = form.fornecedorDocumento.replace(/\D/g, "");
-    if (cnpj.length !== 14) {
-      setInfoCnpj("Digite um CNPJ com 14 dígitos.");
-      return;
-    }
     setBuscandoCnpj(true);
     setInfoCnpj("");
     try {
-      const { data } = await api.get<ConsultaCnpj>(`/contas-pagar/cnpj/${cnpj}`);
+      const dados = await consultarCnpj(form.fornecedorDocumento);
       setForm((f) => ({
         ...f,
-        fornecedorDocumento: formatarDocumento(cnpj),
-        fornecedorNome: data.razaoSocial || data.nomeFantasia || f.fornecedorNome,
+        fornecedorDocumento: formatarDocumento(dados.cnpj),
+        fornecedorNome: dados.razaoSocial || dados.nomeFantasia || f.fornecedorNome,
       }));
-      const partes = [data.nomeFantasia && `Fantasia: ${data.nomeFantasia}`, data.situacao && `Situação: ${data.situacao}`, data.municipio && `${data.municipio}/${data.uf}`];
-      setInfoCnpj(partes.filter(Boolean).join(" · "));
+      setInfoCnpj(resumoCnpj(dados));
     } catch (e: any) {
-      setInfoCnpj(e?.response?.data?.erro ?? "Não foi possível consultar o CNPJ.");
+      setInfoCnpj(e.message);
     } finally {
       setBuscandoCnpj(false);
     }

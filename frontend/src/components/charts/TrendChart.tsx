@@ -77,10 +77,10 @@ export function TrendChart({ data, ariaLabel }: Props) {
           </linearGradient>
         </defs>
 
-        {yTicks.map((tick) => {
+        {yTicks.map((tick, indice) => {
           const y = PADDING_TOP + plotHeight - (tick / maxValue) * plotHeight;
           return (
-            <g key={tick}>
+            <g key={indice}>
               <line
                 x1={PADDING_LEFT}
                 x2={WIDTH - PADDING_RIGHT}

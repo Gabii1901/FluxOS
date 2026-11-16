@@ -1,4 +1,5 @@
 import axios from "axios";
+import { lerToken } from "./sessao";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
 
@@ -11,7 +12,7 @@ export function urlArquivo(caminho: string) {
 }
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("fluxos:token");
+  const token = lerToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

@@ -3,10 +3,12 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { api } from "../lib/api";
+import { lerToken, limparToken, salvarToken } from "../lib/sessao";
 import type { UsuarioLogado } from "../types/auth";
 
 export interface EmpresaDisponivel {
@@ -23,7 +25,7 @@ export class EmailNaoConfirmadoError extends Error {}
 interface AuthContextValue {
   usuario: UsuarioLogado | null;
   carregando: boolean;
-  login: (email: string, senha: string) => Promise<ResultadoLogin>;
+  login: (email: string, senha: string, lembrar?: boolean) => Promise<ResultadoLogin>;
   selecionarEmpresa: (preAuthToken: string, empresaId: string) => Promise<void>;
   confirmarEmail: (token: string) => Promise<void>;
   atualizarUsuario: () => Promise<void>;
@@ -32,14 +34,14 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const TOKEN_KEY = "fluxos:token";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<UsuarioLogado | null>(null);
   const [carregando, setCarregando] = useState(true);
+  // Guardado entre o login e a escolha de empresa (quando a conta tem mais de uma).
+  const lembrarRef = useRef(false);
 
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = lerToken();
     if (!token) {
       setCarregando(false);
       return;
@@ -48,21 +50,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api
       .get<UsuarioLogado>("/auth/me")
       .then((resposta) => setUsuario(resposta.data))
-      .catch(() => localStorage.removeItem(TOKEN_KEY))
+      .catch(() => limparToken())
       .finally(() => setCarregando(false));
   }, []);
 
-  function aplicarSessao(dados: { token: string; usuario: UsuarioLogado }) {
-    localStorage.setItem(TOKEN_KEY, dados.token);
+  function aplicarSessao(dados: { token: string; usuario: UsuarioLogado }, lembrar = lembrarRef.current) {
+    salvarToken(dados.token, lembrar);
     setUsuario(dados.usuario);
   }
 
-  async function login(email: string, senha: string): Promise<ResultadoLogin> {
+  async function login(email: string, senha: string, lembrar = false): Promise<ResultadoLogin> {
+    lembrarRef.current = lembrar;
     try {
       const resposta = await api.post<
         | { token: string; usuario: UsuarioLogado }
         | { precisaEscolherEmpresa: true; preAuthToken: string; empresas: EmpresaDisponivel[] }
-      >("/auth/login", { email, senha });
+      >("/auth/login", { email, senha, lembrar });
 
       if ("precisaEscolherEmpresa" in resposta.data) {
         return {
@@ -95,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       "/auth/confirmar-email",
       { token },
     );
-    aplicarSessao(resposta.data);
+    aplicarSessao(resposta.data, true);
   }
 
   async function atualizarUsuario() {
@@ -104,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function logout() {
-    localStorage.removeItem(TOKEN_KEY);
+    limparToken();
     setUsuario(null);
   }
 

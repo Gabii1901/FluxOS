@@ -9,7 +9,6 @@ export const contasPagarRoutes = Router();
 contasPagarRoutes.use(requireAuth);
 
 contasPagarRoutes.get("/resumo", requirePermissao("financeiro", "ver"), asyncHandler(c.resumo));
-contasPagarRoutes.get("/cnpj/:cnpj", requirePermissao("financeiro", "ver"), asyncHandler(c.consultarCnpj));
 
 contasPagarRoutes.get("/categorias", requirePermissao("financeiro", "ver"), asyncHandler(c.listarCategorias));
 contasPagarRoutes.post("/categorias", requirePermissao("financeiro", "criar"), asyncHandler(c.criarCategoria));

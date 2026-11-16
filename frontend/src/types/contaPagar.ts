@@ -35,15 +35,6 @@ export interface ResumoContasPagar {
   pagoNoMes: Total;
 }
 
-export interface ConsultaCnpj {
-  cnpj: string;
-  razaoSocial: string | null;
-  nomeFantasia: string | null;
-  situacao: string | null;
-  municipio: string | null;
-  uf: string | null;
-}
-
 export const FORMAS_PAGAMENTO = ["PIX", "Boleto", "Cartão de crédito", "Cartão de débito", "Dinheiro", "Transferência"];
 
 export const STATUS_CONTA_LABEL: Record<StatusContaPagar, string> = {

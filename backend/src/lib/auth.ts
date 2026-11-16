@@ -8,8 +8,9 @@ export interface TokenPayload {
   papel: string;
 }
 
-export function assinarToken(payload: TokenPayload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "8h" });
+// "Lembrar de mim" no login estende a sessão de 8 horas para 30 dias.
+export function assinarToken(payload: TokenPayload, lembrar = false) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: lembrar ? "30d" : "8h" });
 }
 
 export function verificarToken(token: string): TokenPayload {
@@ -22,9 +23,10 @@ export function verificarToken(token: string): TokenPayload {
 export interface PreAuthPayload {
   contaId: string;
   tipo: "pre_auth";
+  lembrar?: boolean;
 }
 
-export function assinarPreAuthToken(payload: { contaId: string }) {
+export function assinarPreAuthToken(payload: { contaId: string; lembrar?: boolean }) {
   return jwt.sign({ ...payload, tipo: "pre_auth" }, JWT_SECRET, { expiresIn: "10m" });
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { usePermissao } from "../hooks/usePermissao";
 import { api } from "../lib/api";
+import { consultarCnpj, formatarDocumento, formatarTelefone, resumoCnpj } from "../lib/cnpj";
 import type { Cliente } from "../types/cliente";
 
 type FiltroStatus = "todos" | "ativos" | "inativos";
@@ -21,6 +22,8 @@ export function ClientesPage() {
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [documento, setDocumento] = useState("");
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false);
+  const [infoCnpj, setInfoCnpj] = useState("");
 
   const [filtroNome, setFiltroNome] = useState("");
   const [filtroContato, setFiltroContato] = useState("");
@@ -40,6 +43,25 @@ export function ClientesPage() {
     setTelefone("");
     setEmail("");
     setDocumento("");
+    setInfoCnpj("");
+  }
+
+  async function handleBuscarCnpj() {
+    setBuscandoCnpj(true);
+    setInfoCnpj("");
+    try {
+      const dados = await consultarCnpj(documento);
+      setDocumento(formatarDocumento(dados.cnpj));
+      // Nome sempre vem da Receita; telefone e e-mail só preenchem se estiverem vazios.
+      if (dados.razaoSocial || dados.nomeFantasia) setNome(dados.razaoSocial || dados.nomeFantasia || "");
+      if (dados.telefone) setTelefone((t) => t || formatarTelefone(dados.telefone!));
+      if (dados.email) setEmail((e) => e || dados.email!.toLowerCase());
+      setInfoCnpj(resumoCnpj(dados));
+    } catch (e: any) {
+      setInfoCnpj(e.message);
+    } finally {
+      setBuscandoCnpj(false);
+    }
   }
 
   function abrirNovo() {
@@ -55,6 +77,7 @@ export function ClientesPage() {
     setTelefone(cliente.telefone ?? "");
     setEmail(cliente.email ?? "");
     setDocumento(cliente.documento ?? "");
+    setInfoCnpj("");
     setErro(null);
     setMostrarForm(true);
   }
@@ -151,10 +174,31 @@ export function ClientesPage() {
             {editandoId ? "Editar cliente" : "Novo cliente"}
           </h2>
           <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-slate-700">Documento (CPF/CNPJ)</label>
+            <div className="flex gap-2">
+              <input
+                autoFocus
+                value={documento}
+                onChange={(e) => setDocumento(e.target.value)}
+                onBlur={(e) => setDocumento(formatarDocumento(e.target.value))}
+                placeholder="CPF ou CNPJ"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+              />
+              <button
+                type="button"
+                onClick={handleBuscarCnpj}
+                disabled={buscandoCnpj}
+                className="whitespace-nowrap rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+              >
+                {buscandoCnpj ? "Buscando..." : "Buscar na Receita"}
+              </button>
+            </div>
+            {infoCnpj && <p className="mt-1 text-xs text-slate-500">{infoCnpj}</p>}
+          </div>
+          <div className="sm:col-span-2">
             <label className="mb-1 block text-sm font-medium text-slate-700">Nome *</label>
             <input
               required
-              autoFocus
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
@@ -174,16 +218,6 @@ export function ClientesPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Documento (CPF/CNPJ)
-            </label>
-            <input
-              value={documento}
-              onChange={(e) => setDocumento(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
             />
           </div>
