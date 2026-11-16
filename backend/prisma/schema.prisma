@@ -45,6 +45,8 @@ model Empresa {
   materiaisChapa   MaterialChapa[]
   perfisCalha      PerfilCalha[]
   orcamentosCalha  OrcamentoCalha[]
+  categoriasContaPagar CategoriaContaPagar[]
+  contasPagar      ContaPagar[]
 
   @@map("empresas")
 }
@@ -699,4 +701,48 @@ model OrcamentoCalhaMaoDeObra {
   usuario   Usuario        @relation(fields: [usuarioId], references: [id])
 
   @@map("orcamento_calha_mao_de_obra")
+}
+
+// ============================================================
+// Contas a pagar
+// ============================================================
+
+model CategoriaContaPagar {
+  id        String   @id @default(uuid())
+  empresaId String   @map("empresa_id")
+  nome      String
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  empresa Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contas  ContaPagar[]
+
+  @@map("categorias_conta_pagar")
+}
+
+// Status é derivado: pagoEm preenchido = paga; senão vencimento < hoje = vencida; senão em aberto.
+model ContaPagar {
+  id                  String    @id @default(uuid())
+  empresaId           String    @map("empresa_id")
+  categoriaId         String?   @map("categoria_id")
+  descricao           String
+  fornecedorNome      String?   @map("fornecedor_nome")
+  fornecedorDocumento String?   @map("fornecedor_documento")
+  valor               Decimal   @db.Decimal(12, 2)
+  vencimento          DateTime  @db.Date
+  pagoEm              DateTime? @map("pago_em") @db.Date
+  formaPagamento      String?   @map("forma_pagamento")
+  observacao          String?
+  // Contas criadas juntas pela recorrência compartilham o mesmo grupo.
+  grupoRecorrenciaId  String?   @map("grupo_recorrencia_id")
+  parcela             Int?
+  totalParcelas       Int?      @map("total_parcelas")
+  criadoEm            DateTime  @default(now()) @map("criado_em")
+
+  empresa   Empresa              @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  categoria CategoriaContaPagar? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, vencimento])
+  @@index([grupoRecorrenciaId])
+  @@map("contas_pagar")
 }

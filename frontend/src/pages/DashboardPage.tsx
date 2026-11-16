@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { usePermissao } from "../hooks/usePermissao";
 import { api } from "../lib/api";
 import { STATUS_LABEL, TODOS_STATUS, type OrdemServico, type StatusOs } from "../types/ordemServico";
+import type { ResumoContasPagar } from "../types/contaPagar";
 import type { Modulo } from "../types/permissao";
 
 // Mostrados no Início para quem não tem acesso às OS (o resumo depende delas).
@@ -16,6 +17,7 @@ const ATALHOS: { to: string; label: string; modulo: Modulo }[] = [
   { to: "/clientes", label: "Clientes", modulo: "clientes" },
   { to: "/estoque", label: "Estoque", modulo: "estoque" },
   { to: "/pagamentos-pendentes", label: "Pagamentos a prazo", modulo: "financeiro" },
+  { to: "/contas-pagar", label: "Contas a pagar", modulo: "financeiro" },
   { to: "/usuarios", label: "Usuários", modulo: "usuarios" },
 ];
 
@@ -43,6 +45,7 @@ export function DashboardPage() {
   const [ordens, setOrdens] = useState<OrdemServico[]>([]);
   const [resumoFinanceiro, setResumoFinanceiro] = useState<ResumoFinanceiroData | null>(null);
   const [carregando, setCarregando] = useState(podeVerOs);
+  const [contasPagar, setContasPagar] = useState<ResumoContasPagar | null>(null);
 
   useEffect(() => {
     if (!podeVerOs) return;
@@ -58,7 +61,41 @@ export function DashboardPage() {
   useEffect(() => {
     if (!podeVerFinanceiro) return;
     api.get<ResumoFinanceiroData>("/faturas/resumo").then((resposta) => setResumoFinanceiro(resposta.data));
+    api
+      .get<ResumoContasPagar>("/contas-pagar/resumo")
+      .then((resposta) => setContasPagar(resposta.data))
+      .catch(() => {});
   }, [podeVerFinanceiro]);
+
+  const moeda = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const cartaoContasPagar = podeVerFinanceiro && contasPagar && (
+    <Link
+      to="/contas-pagar"
+      className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 border-l-4 border-l-amber-400 bg-white p-5 hover:border-slate-300"
+    >
+      <div>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">A pagar nos próximos 7 dias</p>
+        <p className="mt-2 text-2xl font-semibold text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+          {moeda(contasPagar.proximos7Dias.valor)}
+        </p>
+        <p className="text-xs text-slate-500">
+          {contasPagar.proximos7Dias.quantidade} {contasPagar.proximos7Dias.quantidade === 1 ? "conta" : "contas"}
+        </p>
+      </div>
+      {contasPagar.vencido.quantidade > 0 && (
+        <div className="text-right">
+          <p className="text-xs font-medium uppercase tracking-wide text-red-600">Vencidas</p>
+          <p className="mt-2 text-lg font-semibold text-red-600" style={{ fontVariantNumeric: "tabular-nums" }}>
+            {moeda(contasPagar.vencido.valor)}
+          </p>
+          <p className="text-xs text-red-500">
+            {contasPagar.vencido.quantidade} {contasPagar.vencido.quantidade === 1 ? "conta" : "contas"}
+          </p>
+        </div>
+      )}
+      <span className="text-xs font-medium text-slate-500">Ver contas a pagar →</span>
+    </Link>
+  );
 
   const abertas = ordens.filter((os) => STATUS_ABERTOS.includes(os.status));
   const entregues = ordens.filter((os) => os.status === "entregue");
@@ -117,6 +154,7 @@ export function DashboardPage() {
         <p className="mt-1 text-sm text-slate-500">Resumo do que está acontecendo agora no FluxOS.</p>
       </header>
 
+      {!podeVerOs && cartaoContasPagar}
       {!podeVerOs ? (
         <div className="rounded-xl border border-slate-200 bg-white p-6">
           <p className="mb-4 text-sm font-medium text-slate-700">Seus atalhos</p>
@@ -172,6 +210,8 @@ export function DashboardPage() {
               </p>
             </div>
           </div>
+
+          {cartaoContasPagar}
 
           {podeVerFinanceiro && resumoFinanceiro && (
             <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">

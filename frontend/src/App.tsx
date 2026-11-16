@@ -14,6 +14,7 @@ import { CalhaOrcamentoImpressaoPage } from "./pages/CalhaOrcamentoImpressaoPage
 import { CalhaOrcamentosPage } from "./pages/CalhaOrcamentosPage";
 import { ClientesPage } from "./pages/ClientesPage";
 import { ConfirmarEmailPage } from "./pages/ConfirmarEmailPage";
+import { ContasPagarPage } from "./pages/ContasPagarPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { EscolherPlanoPage } from "./pages/EscolherPlanoPage";
 import { EstoquePage } from "./pages/EstoquePage";
@@ -130,6 +131,14 @@ function App() {
                   element={
                     <RotaComPermissao modulo="financeiro">
                       <PagamentosPendentesPage />
+                    </RotaComPermissao>
+                  }
+                />
+                <Route
+                  path="/contas-pagar"
+                  element={
+                    <RotaComPermissao modulo="financeiro">
+                      <ContasPagarPage />
                     </RotaComPermissao>
                   }
                 />
