@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CampoMoeda } from "./CampoMoeda";
 import { api } from "../lib/api";
 import type { Peca } from "../types/peca";
 import { TIPO_ITEM_LABEL, type TipoItemOrcamento } from "../types/orcamento";
@@ -165,14 +166,11 @@ export function OrcamentoForm({ osId, pecasDisponiveis, onCriado, onCancelar }: 
               />
             </div>
 
-            <div className="w-full sm:w-28">
+            <div className="w-full sm:w-32">
               <label className="mb-1 block text-xs font-medium text-slate-600">Valor unit. (R$)</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
+              <CampoMoeda
                 value={linha.valorUnitario}
-                onChange={(e) => atualizarLinha(linha.chave, { valorUnitario: e.target.value })}
+                onChange={(v) => atualizarLinha(linha.chave, { valorUnitario: v })}
                 className="w-full rounded-lg border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
               />
             </div>

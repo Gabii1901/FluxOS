@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { CampoMoeda } from "../components/CampoMoeda";
 import { Link, useParams } from "react-router-dom";
 import { usePermissao } from "../hooks/usePermissao";
 import { api } from "../lib/api";
@@ -134,13 +135,10 @@ export function PecaDetalhePage() {
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">Valor unitário (R$)</label>
-              <input
+              <CampoMoeda
                 required
-                type="number"
-                min="0"
-                step="0.01"
                 value={valorEdicao}
-                onChange={(e) => setValorEdicao(e.target.value)}
+                onChange={setValorEdicao}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
               />
             </div>

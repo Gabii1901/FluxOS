@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { CampoMoeda } from "../components/CampoMoeda";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { OrcamentoForm } from "../components/OrcamentoForm";
 import { StatusBadge } from "../components/StatusBadge";
 import { usePermissao } from "../hooks/usePermissao";
 import { api, urlArquivo } from "../lib/api";
+import { aguardarDescarteOrcamentoCalha } from "../lib/descarteOrcamentoCalha";
 import {
   STATUS_LABEL,
   TODOS_STATUS,
@@ -83,8 +85,8 @@ export function OrdemServicoDetalhePage() {
   const inputFotoRef = useRef<HTMLInputElement>(null);
 
   function carregar() {
-    return api
-      .get<OrdemServicoDetalhe>(`/ordens-servico/${id}`)
+    return aguardarDescarteOrcamentoCalha()
+      .then(() => api.get<OrdemServicoDetalhe>(`/ordens-servico/${id}`))
       .then((resposta) => setOs(resposta.data));
   }
 
@@ -808,14 +810,11 @@ export function OrdemServicoDetalhePage() {
 
                 {saldoDisponivel > 0.01 && podeCriarFinanceiro && (
                   <div className="flex flex-col gap-2 rounded-lg border border-slate-100 p-3 sm:flex-row sm:items-end sm:flex-wrap">
-                    <div className="w-28">
+                    <div className="w-32">
                       <label className="mb-1 block text-xs font-medium text-slate-600">Valor (R$)</label>
-                      <input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
+                      <CampoMoeda
                         value={valorPagamento}
-                        onChange={(e) => setValorPagamento(e.target.value)}
+                        onChange={setValorPagamento}
                         className="w-full rounded-lg border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                       />
                     </div>

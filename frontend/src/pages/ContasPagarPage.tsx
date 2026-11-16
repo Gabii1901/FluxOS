@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { CampoMoeda } from "../components/CampoMoeda";
 import { usePermissao } from "../hooks/usePermissao";
 import { api } from "../lib/api";
 import {
@@ -204,7 +205,7 @@ export function ContasPagarPage() {
   async function handleSalvar(evento: React.FormEvent) {
     evento.preventDefault();
     setErroForm("");
-    const valor = Number(form.valor.replace(",", "."));
+    const valor = Number(form.valor);
     if (!form.descricao.trim()) return setErroForm("Informe a descrição.");
     if (!valor || valor <= 0) return setErroForm("Informe um valor maior que zero.");
     if (!form.vencimento) return setErroForm("Informe o vencimento.");
@@ -439,12 +440,9 @@ export function ContasPagarPage() {
 
             <div>
               <label className={labelClass}>Valor (R$) *</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
+              <CampoMoeda
                 value={form.valor}
-                onChange={(e) => atualizarForm("valor", e.target.value)}
+                onChange={(v) => atualizarForm("valor", v)}
                 className={inputClass}
               />
             </div>

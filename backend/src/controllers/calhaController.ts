@@ -291,6 +291,21 @@ export async function apagarOrcamento(req: Request, res: Response) {
   res.status(204).send();
 }
 
+// Descarta um orçamento recém-criado que ficou vazio (usuário clicou em "+ Novo" e saiu
+// sem adicionar nada). Só apaga se continuar rascunho, sem itens e sem mão de obra.
+export async function descartarOrcamentoVazio(req: Request, res: Response) {
+  const orcamento = await prisma.orcamentoCalha.findFirst({
+    where: { id: req.params.id, empresaId: req.usuario!.empresaId },
+    include: { _count: { select: { itens: true, maoDeObra: true } } },
+  });
+  if (!orcamento) return res.status(204).send();
+  if (orcamento.status !== "rascunho" || orcamento._count.itens > 0 || orcamento._count.maoDeObra > 0) {
+    return res.json({ descartado: false });
+  }
+  await prisma.orcamentoCalha.delete({ where: { id: orcamento.id } });
+  res.json({ descartado: true });
+}
+
 // ============================================================
 // Itens do orçamento
 // ============================================================

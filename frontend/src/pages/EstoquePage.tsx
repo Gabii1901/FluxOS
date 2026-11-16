@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { CampoMoeda } from "../components/CampoMoeda";
 import { useNavigate } from "react-router-dom";
 import { usePermissao } from "../hooks/usePermissao";
 import { api } from "../lib/api";
@@ -140,12 +141,9 @@ export function EstoquePage() {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Valor unitário (R$)</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
+            <CampoMoeda
               value={valorUnitario}
-              onChange={(e) => setValorUnitario(e.target.value)}
+              onChange={setValorUnitario}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
             />
           </div>

@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CampoMoeda } from "../components/CampoMoeda";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { PerfilCalhaEditor } from "../components/PerfilCalhaEditor";
 import { api } from "../lib/api";
+import { descartarOrcamentoCalhaSeVazio } from "../lib/descarteOrcamentoCalha";
 import {
   SERVICOS_EM_CHAPA,
   STATUS_ORCAMENTO_CALHA_LABEL,
@@ -80,6 +82,19 @@ export function CalhaOrcamentoDetalhePage() {
       })
       .catch(() => setErroCarregamento(true))
       .finally(() => setCarregando(false));
+  }, [id]);
+
+  // Ao sair da tela (Voltar, menu, etc.), um orçamento que continua vazio é descartado,
+  // para não sobrar orçamento zerado na lista nem na OS.
+  const orcamentoAtual = useRef<OrcamentoCalha | null>(null);
+  orcamentoAtual.current = orcamento;
+  useEffect(() => {
+    return () => {
+      const o = orcamentoAtual.current;
+      if (o && o.status === "rascunho" && o.itens.length === 0 && o.maoDeObra.length === 0) {
+        descartarOrcamentoCalhaSeVazio(o.id);
+      }
+    };
   }, [id]);
 
   async function recarregar() {
@@ -601,7 +616,7 @@ function ItemForm({
       {!ehMetal && (
         <div className="mb-4">
           <label className={rotulo}>Valor unitário (R$)</label>
-          <input value={valorUnitario} onChange={(e) => setValorUnitario(e.target.value)} className={campo} placeholder="150,00" />
+          <CampoMoeda value={valorUnitario} onChange={setValorUnitario} className={campo} />
         </div>
       )}
 
@@ -686,7 +701,7 @@ function MaoDeObraForm({
             <option key={f.id} value={f.id}>{f.nome}</option>
           ))}
         </select>
-        <input value={valorHora} onChange={(e) => setValorHora(e.target.value)} className={campo} placeholder="Valor/hora (R$)" />
+        <CampoMoeda value={valorHora} onChange={setValorHora} className={campo} placeholder="Valor/hora (R$)" />
         <input value={horas} onChange={(e) => setHoras(e.target.value)} className={campo} placeholder="Horas" />
         <button
           type="button"

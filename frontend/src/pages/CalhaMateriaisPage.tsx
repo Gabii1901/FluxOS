@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { CampoMoeda } from "../components/CampoMoeda";
 import { api } from "../lib/api";
 import type { MaterialChapa } from "../types/calha";
 
@@ -33,7 +34,7 @@ export function CalhaMateriaisPage() {
     setEspessuraMm(material.espessuraMm ? String(Number(material.espessuraMm)).replace(".", ",") : "");
     setTipo(material.tipo ?? "");
     setCor(material.cor ?? "");
-    setPrecoM2(String(Number(material.precoM2)).replace(".", ","));
+    setPrecoM2(Number(material.precoM2).toFixed(2));
     setEditandoId(material.id);
     setMostrarForm(true);
   }
@@ -121,7 +122,7 @@ export function CalhaMateriaisPage() {
             </div>
             <div>
               <label className={rotulo}>Preço por m² (R$)</label>
-              <input required value={precoM2} onChange={(e) => setPrecoM2(e.target.value)} className={campo} placeholder="55,00" />
+              <CampoMoeda required value={precoM2} onChange={setPrecoM2} className={campo} />
             </div>
           </div>
           <button

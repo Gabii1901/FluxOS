@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
+import { aguardarDescarteOrcamentoCalha } from "../lib/descarteOrcamentoCalha";
 import { STATUS_ORCAMENTO_CALHA_LABEL, type OrcamentoCalhaResumo, type StatusOrcamentoCalha } from "../types/calha";
 
 function formatarMoeda(valor: string) {
@@ -26,8 +27,8 @@ export function CalhaOrcamentosPage() {
 
   function carregar() {
     setCarregando(true);
-    return api
-      .get<OrcamentoCalhaResumo[]>("/calhas/orcamentos")
+    return aguardarDescarteOrcamentoCalha()
+      .then(() => api.get<OrcamentoCalhaResumo[]>("/calhas/orcamentos"))
       .then((resposta) => setOrcamentos(resposta.data))
       .finally(() => setCarregando(false));
   }
