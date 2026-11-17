@@ -9,6 +9,11 @@ export interface DadosCnpj {
   uf: string | null;
   telefone: string | null;
   email: string | null;
+  cep: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
 }
 
 /** Formata CPF (11 dígitos) ou CNPJ (14 dígitos); qualquer outra coisa volta como veio. */
