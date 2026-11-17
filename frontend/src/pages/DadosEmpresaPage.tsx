@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
+import { UsuariosComAcesso } from "../components/UsuariosComAcesso";
 import { useAuth } from "../contexts/AuthContext";
 import { api, urlArquivo } from "../lib/api";
 import { consultarCnpj, formatarDocumento, resumoCnpj } from "../lib/cnpj";
@@ -395,6 +396,8 @@ export function DadosEmpresaPage() {
           </button>
         </div>
       </form>
+
+      {modoAdmin && empresaId && <UsuariosComAcesso empresaId={empresaId} />}
     </div>
   );
 }

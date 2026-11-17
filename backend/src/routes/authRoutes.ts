@@ -11,3 +11,5 @@ authRoutes.post("/reenviar-confirmacao", asyncHandler(authController.reenviarCon
 authRoutes.post("/login", asyncHandler(authController.login));
 authRoutes.post("/selecionar-empresa", asyncHandler(authController.selecionarEmpresa));
 authRoutes.get("/me", requireAuth, asyncHandler(authController.me));
+authRoutes.get("/empresas", requireAuth, asyncHandler(authController.listarMinhasEmpresas));
+authRoutes.post("/trocar-empresa", requireAuth, asyncHandler(authController.trocarEmpresa));

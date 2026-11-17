@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as adminController from "../controllers/adminController";
 import * as empresaController from "../controllers/empresaController";
+import * as vinculosController from "../controllers/vinculosController";
 import { asyncHandler } from "../middlewares/asyncHandler";
 import { requireDesenvolvedor } from "../middlewares/requirePermissao";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -18,3 +19,8 @@ adminRoutes.get("/empresas/:empresaId/dados", asyncHandler(empresaController.bus
 adminRoutes.patch("/empresas/:empresaId/dados", asyncHandler(empresaController.atualizar));
 adminRoutes.post("/empresas/:empresaId/dados/logo", uploadLogo.single("logo"), asyncHandler(empresaController.enviarLogo));
 adminRoutes.delete("/empresas/:empresaId/dados/logo", asyncHandler(empresaController.removerLogo));
+
+adminRoutes.get("/empresas/:empresaId/usuarios", asyncHandler(vinculosController.listar));
+adminRoutes.post("/empresas/:empresaId/usuarios", asyncHandler(vinculosController.vincular));
+adminRoutes.delete("/empresas/:empresaId/usuarios/:usuarioId", asyncHandler(vinculosController.desvincular));
+adminRoutes.post("/empresas/:empresaId/acessar", asyncHandler(vinculosController.acessar));

@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "../lib/api";
-import { lerToken, limparToken, salvarToken } from "../lib/sessao";
+import { lerToken, limparToken, salvarToken, tokenEstaLembrado } from "../lib/sessao";
 import type { UsuarioLogado } from "../types/auth";
 
 export interface EmpresaDisponivel {
@@ -30,6 +30,10 @@ interface AuthContextValue {
   confirmarEmail: (token: string) => Promise<void>;
   atualizarUsuario: () => Promise<void>;
   logout: () => void;
+  /** Troca para outra empresa à qual a conta tem acesso. */
+  trocarEmpresa: (empresaId: string) => Promise<void>;
+  /** Desenvolvedor entra em qualquer empresa (suporte). */
+  acessarEmpresaComoDev: (empresaId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -111,8 +115,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsuario(null);
   }
 
+  // Troca a sessão para outra empresa e recarrega o app do início, para que
+  // nenhuma tela fique com dados da empresa anterior em memória.
+  async function entrarEmEmpresa(caminho: string, corpo: Record<string, unknown>) {
+    const lembrar = tokenEstaLembrado();
+    const resposta = await api.post<{ token: string; usuario: UsuarioLogado }>(caminho, { ...corpo, lembrar });
+    salvarToken(resposta.data.token, lembrar);
+    window.location.assign(import.meta.env.BASE_URL);
+  }
+
+  function trocarEmpresa(empresaId: string) {
+    return entrarEmEmpresa("/auth/trocar-empresa", { empresaId });
+  }
+
+  function acessarEmpresaComoDev(empresaId: string) {
+    return entrarEmEmpresa(`/admin/empresas/${empresaId}/acessar`, {});
+  }
+
   const value = useMemo(
-    () => ({ usuario, carregando, login, selecionarEmpresa, confirmarEmail, atualizarUsuario, logout }),
+    () => ({
+      usuario,
+      carregando,
+      login,
+      selecionarEmpresa,
+      confirmarEmail,
+      atualizarUsuario,
+      logout,
+      trocarEmpresa,
+      acessarEmpresaComoDev,
+    }),
     [usuario, carregando],
   );
 

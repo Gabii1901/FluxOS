@@ -7,7 +7,7 @@ import { MODULOS, montarMapaPermissoes } from "../lib/permissoes";
 import { prisma } from "../lib/prisma";
 import { gerarTokenVerificacao, hashToken } from "../lib/tokens";
 
-async function montarRespostaLogin(usuarioId: string, lembrar = false) {
+export async function montarRespostaLogin(usuarioId: string, lembrar = false) {
   const usuario = await prisma.usuario.findUniqueOrThrow({
     where: { id: usuarioId },
     include: {
@@ -240,6 +240,39 @@ export async function selecionarEmpresa(req: Request, res: Response) {
   if (!vinculo) {
     return res.status(403).json({ erro: "Você não tem acesso a esta empresa" });
   }
+
+  res.json(await montarRespostaLogin(vinculo.id, lembrar));
+}
+
+// Empresas que a conta do usuário logado pode acessar (para trocar sem sair).
+export async function listarMinhasEmpresas(req: Request, res: Response) {
+  const atual = await prisma.usuario.findUnique({ where: { id: req.usuario!.usuarioId }, select: { contaId: true } });
+  if (!atual) return res.status(404).json({ erro: "Usuário não encontrado" });
+
+  const vinculos = await prisma.usuario.findMany({
+    where: { contaId: atual.contaId, ativo: true },
+    include: { empresa: { select: { id: true, nome: true } } },
+    orderBy: { empresa: { nome: "asc" } },
+  });
+  res.json(
+    vinculos.map((v) => ({
+      empresaId: v.empresa.id,
+      empresaNome: v.empresa.nome,
+      papel: v.papel,
+      atual: v.empresaId === req.usuario!.empresaId,
+    })),
+  );
+}
+
+const trocarEmpresaSchema = z.object({ empresaId: z.string().min(1), lembrar: z.boolean().optional() });
+
+export async function trocarEmpresa(req: Request, res: Response) {
+  const { empresaId, lembrar = false } = trocarEmpresaSchema.parse(req.body);
+  const atual = await prisma.usuario.findUnique({ where: { id: req.usuario!.usuarioId }, select: { contaId: true } });
+  if (!atual) return res.status(404).json({ erro: "Usuário não encontrado" });
+
+  const vinculo = await prisma.usuario.findFirst({ where: { contaId: atual.contaId, empresaId, ativo: true } });
+  if (!vinculo) return res.status(403).json({ erro: "Você não tem acesso a esta empresa" });
 
   res.json(await montarRespostaLogin(vinculo.id, lembrar));
 }

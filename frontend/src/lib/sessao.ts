@@ -35,3 +35,8 @@ export function lerEmailLembrado() {
 export function salvarEmailLembrado(email: string | null) {
   seguro(() => (email ? localStorage.setItem(EMAIL_KEY, email) : localStorage.removeItem(EMAIL_KEY)), undefined);
 }
+
+/** true quando a sessão atual foi aberta com "Lembrar de mim" (token no localStorage). */
+export function tokenEstaLembrado() {
+  return seguro(() => localStorage.getItem(TOKEN_KEY) !== null, false);
+}

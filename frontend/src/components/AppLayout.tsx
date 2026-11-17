@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { SeletorEmpresa } from "./SeletorEmpresa";
 import { useAuth } from "../contexts/AuthContext";
 import { usePermissao } from "../hooks/usePermissao";
 import { PAPEL_LABEL } from "../types/auth";
@@ -24,13 +25,13 @@ export function AppLayout() {
   const itensVisiveis = NAV_ITEMS.filter((item) => pode(item.modulo, "ver"));
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       <aside className="flex w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
         <div className="px-5 py-5">
           <img src={`${import.meta.env.BASE_URL}logo_fluxos_wordmark.png`} alt="FluxOS" className="h-7 w-auto" />
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 px-3">
+        <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 pb-2">
           {itensVisiveis.map((item) => (
             <NavLink
               key={item.to}
@@ -97,6 +98,7 @@ export function AppLayout() {
         <div className="border-t border-slate-200 px-4 py-4">
           <p className="truncate text-sm font-medium text-slate-900">{usuario?.nome}</p>
           <p className="text-xs text-slate-500">{usuario && PAPEL_LABEL[usuario.papel]}</p>
+          <SeletorEmpresa />
           <button
             onClick={logout}
             className="mt-3 w-full rounded-lg border border-slate-200 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"

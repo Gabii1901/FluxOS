@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { CampoSenha } from "../components/CampoSenha";
+import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { PLANO_LABEL, type Plano, type StatusAssinatura } from "../types/auth";
 
@@ -31,6 +32,19 @@ export function AdminEmpresasPage() {
   const [carregando, setCarregando] = useState(true);
   const [empresaSelecionada, setEmpresaSelecionada] = useState<EmpresaResumo | null>(null);
   const [atualizandoId, setAtualizandoId] = useState<string | null>(null);
+  const { usuario, acessarEmpresaComoDev } = useAuth();
+  const [acessandoId, setAcessandoId] = useState<string | null>(null);
+
+  async function handleAcessar(empresa: EmpresaResumo) {
+    if (!window.confirm(`Entrar no sistema de "${empresa.nome}"? Você volta para a sua empresa pelo seletor no menu.`)) return;
+    setAcessandoId(empresa.id);
+    try {
+      await acessarEmpresaComoDev(empresa.id);
+    } catch (e: any) {
+      window.alert(e?.response?.data?.erro ?? "Não foi possível acessar a empresa.");
+      setAcessandoId(null);
+    }
+  }
 
   async function alternarBloqueio(empresa: EmpresaResumo) {
     const novoStatus = empresa.statusAssinatura === "ativo" ? "cancelado" : "ativo";
@@ -139,8 +153,17 @@ export function AdminEmpresasPage() {
                   <td className="px-4 py-3 text-slate-600">{empresa.formaPagamento ?? "—"}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        disabled={acessandoId !== null || empresa.id === usuario?.empresaId}
+                        onClick={() => handleAcessar(empresa)}
+                        className="text-xs font-medium text-blue-700 underline disabled:no-underline disabled:opacity-50"
+                        title={empresa.id === usuario?.empresaId ? "Você já está nesta empresa" : "Entrar no sistema desta empresa"}
+                      >
+                        {acessandoId === empresa.id ? "Entrando..." : "Acessar"}
+                      </button>
                       <Link to={`/admin/empresas/${empresa.id}`} className="text-xs font-medium text-slate-900 underline">
-                        Editar dados
+                        Dados e acessos
                       </Link>
                       <button
                         type="button"

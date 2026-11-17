@@ -21,6 +21,8 @@ export async function listar(req: Request, res: Response) {
     where: {
       empresaId: req.usuario!.empresaId,
       papel: typeof papel === "string" ? (papel as any) : undefined,
+      // O acesso de suporte da equipe FluxOS não aparece para a empresa.
+      ...(req.usuario!.papel !== "desenvolvedor" ? { NOT: { papel: "desenvolvedor" as const } } : {}),
     },
     select: usuarioResumoSelect,
     orderBy: { nome: "asc" },
