@@ -7,8 +7,15 @@ export const UPLOADS_RAIZ = path.join(__dirname, "..", "..", "uploads");
 const UPLOADS_DIR = path.join(UPLOADS_RAIZ, "os");
 export const LOGOS_DIR = path.join(UPLOADS_RAIZ, "logos");
 
-fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-fs.mkdirSync(LOGOS_DIR, { recursive: true });
+// Se a pasta não puder ser criada (ex.: permissão), o servidor sobe mesmo assim —
+// só o envio de imagens vai falhar, com o erro registrado no log.
+for (const pasta of [UPLOADS_DIR, LOGOS_DIR]) {
+  try {
+    fs.mkdirSync(pasta, { recursive: true });
+  } catch (erro) {
+    console.error(`Não foi possível criar a pasta de uploads ${pasta}:`, erro);
+  }
+}
 
 const EXTENSOES_PERMITIDAS: Record<string, string> = {
   "image/jpeg": ".jpg",

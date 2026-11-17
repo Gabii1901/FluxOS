@@ -20,6 +20,10 @@ npx prisma generate
 echo "==> Backend: build"
 npm run build
 
+echo "==> Backend: garantindo pastas de upload com dono do serviço"
+mkdir -p uploads/os uploads/logos
+chown -R fluxos:fluxos uploads
+
 echo "==> Backend: reiniciando serviço"
 sudo systemctl restart fluxos-backend
 sudo systemctl status fluxos-backend --no-pager -l | head -10
