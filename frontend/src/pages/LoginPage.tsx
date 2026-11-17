@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { CampoSenha } from "../components/CampoSenha";
 import { lerEmailLembrado, salvarEmailLembrado } from "../lib/sessao";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -134,9 +135,8 @@ export function LoginPage() {
             <label htmlFor="senha" className="mb-1 block text-sm font-medium text-slate-700">
               Senha
             </label>
-            <input
+            <CampoSenha
               id="senha"
-              type="password"
               autoComplete="current-password"
               required
               autoFocus={!!email}

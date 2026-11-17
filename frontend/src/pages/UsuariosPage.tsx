@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { CampoSenha } from "../components/CampoSenha";
 import { useAuth } from "../contexts/AuthContext";
 import { usePermissao } from "../hooks/usePermissao";
 import { NIVEL_PAPEL, PAPEL_LABEL, type Papel } from "../types/auth";
@@ -180,9 +181,8 @@ export function UsuariosPage() {
             <label className="mb-1 block text-sm font-medium text-slate-700">
               {editandoId ? "Nova senha (opcional)" : "Senha *"}
             </label>
-            <input
+            <CampoSenha
               required={!editandoId}
-              type="password"
               minLength={6}
               value={senha}
               onChange={(e) => setSenha(e.target.value)}

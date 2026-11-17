@@ -16,6 +16,11 @@ interface DadosCnpj {
   uf: string | null;
   telefone: string | null;
   email: string | null;
+  cep: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
 }
 
 async function consultarBrasilApi(cnpj: string): Promise<DadosCnpj | "nao_encontrado" | null> {
@@ -35,6 +40,11 @@ async function consultarBrasilApi(cnpj: string): Promise<DadosCnpj | "nao_encont
     uf: d.uf ?? null,
     telefone: d.ddd_telefone_1 || null,
     email: d.email || null,
+    cep: d.cep ? String(d.cep).replace(/\D/g, "") : null,
+    logradouro: [d.descricao_tipo_de_logradouro, d.logradouro].filter(Boolean).join(" ") || null,
+    numero: d.numero || null,
+    complemento: d.complemento || null,
+    bairro: d.bairro || null,
   };
 }
 
@@ -55,6 +65,11 @@ async function consultarReceitaWs(cnpj: string): Promise<DadosCnpj | "nao_encont
     uf: d.uf ?? null,
     telefone: d.telefone || null,
     email: d.email || null,
+    cep: d.cep ? String(d.cep).replace(/\D/g, "") : null,
+    logradouro: d.logradouro || null,
+    numero: d.numero || null,
+    complemento: d.complemento || null,
+    bairro: d.bairro || null,
   };
 }
 

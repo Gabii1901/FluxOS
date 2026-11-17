@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CabecalhoEmpresaImpressao } from "../components/CabecalhoEmpresaImpressao";
 import { useParams } from "react-router-dom";
 import { api, urlArquivo } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
@@ -38,10 +39,7 @@ export function OrdemServicoImpressaoPage() {
       </div>
 
       <header className="mb-8 flex items-start justify-between border-b border-slate-300 pb-6">
-        <div>
-          <img src={`${import.meta.env.BASE_URL}logo_fluxos_wordmark.png`} alt="FluxOS" className="h-8 w-auto" />
-          <p className="mt-2 text-sm text-slate-500">{usuario?.empresaNome}</p>
-        </div>
+        <CabecalhoEmpresaImpressao nomeEmpresa={usuario?.empresaNome} />
         <div className="text-right">
           <h1 className="text-xl font-semibold">Ordem de Serviço</h1>
           <p className="font-mono text-sm text-slate-500">#{os.numero}</p>

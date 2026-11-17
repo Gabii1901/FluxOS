@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
+import { CampoSenha } from "../components/CampoSenha";
 import { api } from "../lib/api";
 import { PLANO_LABEL, type Plano, type StatusAssinatura } from "../types/auth";
 
@@ -137,6 +139,9 @@ export function AdminEmpresasPage() {
                   <td className="px-4 py-3 text-slate-600">{empresa.formaPagamento ?? "—"}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
+                      <Link to={`/admin/empresas/${empresa.id}`} className="text-xs font-medium text-slate-900 underline">
+                        Editar dados
+                      </Link>
                       <button
                         type="button"
                         onClick={() => {
@@ -255,7 +260,7 @@ function CriarEmpresaForm({ onCancelar, onCriada }: { onCancelar: () => void; on
         </div>
         <div className="mb-4">
           <label className={rotulo}>Senha</label>
-          <input required type="password" minLength={6} value={adminSenha} onChange={(e) => setAdminSenha(e.target.value)} className={campo} />
+          <CampoSenha required minLength={6} value={adminSenha} onChange={(e) => setAdminSenha(e.target.value)} className={campo} />
         </div>
 
         <p className="mb-3 mt-5 text-sm font-medium text-slate-700">Endereço</p>

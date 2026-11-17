@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CabecalhoEmpresaImpressao } from "../components/CabecalhoEmpresaImpressao";
 import { useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { STATUS_ORCAMENTO_LABEL, TIPO_ITEM_LABEL, type OrcamentoImpressao } from "../types/orcamento";
@@ -40,10 +41,7 @@ export function OrcamentoImpressaoPage() {
       </div>
 
       <header className="mb-8 flex items-start justify-between border-b border-slate-300 pb-6">
-        <div>
-          <img src={`${import.meta.env.BASE_URL}logo_fluxos_wordmark.png`} alt="FluxOS" className="h-8 w-auto" />
-          <p className="mt-2 text-sm text-slate-500">{orcamento.ordemServico.empresa.nome}</p>
-        </div>
+        <CabecalhoEmpresaImpressao nomeEmpresa={orcamento.ordemServico.empresa.nome} />
         <div className="text-right">
           <h1 className="text-xl font-semibold">Orçamento</h1>
           <p className="text-sm text-slate-500">OS #{orcamento.ordemServico.numero}</p>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CabecalhoEmpresaImpressao } from "../components/CabecalhoEmpresaImpressao";
 import { useParams } from "react-router-dom";
 import { PerfilCalhaDesenho } from "../components/PerfilCalhaDesenho";
 import { api } from "../lib/api";
@@ -59,10 +60,7 @@ export function CalhaOrcamentoImpressaoPage() {
       </div>
 
       <header className="mb-8 flex items-start justify-between border-b border-slate-300 pb-6">
-        <div>
-          <img src={`${import.meta.env.BASE_URL}logo_fluxos_wordmark.png`} alt="FluxOS" className="h-8 w-auto" />
-          {orcamento.empresa && <p className="mt-2 text-sm text-slate-500">{orcamento.empresa.nome}</p>}
-        </div>
+        <CabecalhoEmpresaImpressao nomeEmpresa={orcamento.empresa?.nome} />
         <div className="text-right">
           <h1 className="text-xl font-semibold">Orçamento de Calhas</h1>
           <p className="text-sm text-slate-500">

@@ -23,6 +23,8 @@ model Empresa {
   mpAssinaturaId   String?           @map("mp_assinatura_id")
   // Só usado quando plano = personalizado — preço negociado fora da tabela padrão.
   valorPersonalizado Decimal?        @db.Decimal(10, 2) @map("valor_personalizado")
+  // Caminho público da logo enviada pela empresa (ex.: /uploads/logos/<uuid>.png).
+  logoUrl          String?           @map("logo_url")
 
   // Endereço — coletado no cadastro, exigido pelo Mercado Pago para emitir
   // boleto registrado (mesmo quem paga de cartão já deixa isso resolvido).

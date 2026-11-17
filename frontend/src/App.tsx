@@ -15,6 +15,7 @@ import { CalhaOrcamentosPage } from "./pages/CalhaOrcamentosPage";
 import { ClientesPage } from "./pages/ClientesPage";
 import { ConfirmarEmailPage } from "./pages/ConfirmarEmailPage";
 import { ContasPagarPage } from "./pages/ContasPagarPage";
+import { DadosEmpresaPage } from "./pages/DadosEmpresaPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { EscolherPlanoPage } from "./pages/EscolherPlanoPage";
 import { EstoquePage } from "./pages/EstoquePage";
@@ -180,6 +181,22 @@ function App() {
                     <RotaAdminOuDev>
                       <PermissoesPage />
                     </RotaAdminOuDev>
+                  }
+                />
+                <Route
+                  path="/minha-empresa"
+                  element={
+                    <RotaAdminOuDev>
+                      <DadosEmpresaPage />
+                    </RotaAdminOuDev>
+                  }
+                />
+                <Route
+                  path="/admin/empresas/:empresaId"
+                  element={
+                    <RotaSomenteDev>
+                      <DadosEmpresaPage />
+                    </RotaSomenteDev>
                   }
                 />
                 <Route

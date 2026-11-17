@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { CampoSenha } from "../components/CampoSenha";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 
@@ -187,9 +188,8 @@ export function CadastroPage() {
 
           <div className="mb-5">
             <label htmlFor="senha" className={rotulo}>Senha</label>
-            <input
+            <CampoSenha
               id="senha"
-              type="password"
               required
               minLength={6}
               value={senha}
