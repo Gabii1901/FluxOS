@@ -202,6 +202,13 @@ export function CalhaOrcamentoDetalhePage() {
             >
               Imprimir / PDF
             </Link>
+            <Link
+              to={`/orcamento-calhas/${orcamento.id}/producao`}
+              target="_blank"
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-900"
+            >
+              Folha de produção
+            </Link>
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLE[orcamento.status]}`}
             >

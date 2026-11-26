@@ -11,6 +11,7 @@ import { CadastroPage } from "./pages/CadastroPage";
 import { CalhaMateriaisPage } from "./pages/CalhaMateriaisPage";
 import { CalhaOrcamentoDetalhePage } from "./pages/CalhaOrcamentoDetalhePage";
 import { CalhaOrcamentoImpressaoPage } from "./pages/CalhaOrcamentoImpressaoPage";
+import { CalhaProducaoImpressaoPage } from "./pages/CalhaProducaoImpressaoPage";
 import { CalhaOrcamentosPage } from "./pages/CalhaOrcamentosPage";
 import { ClientesPage } from "./pages/ClientesPage";
 import { ConfirmarEmailPage } from "./pages/ConfirmarEmailPage";
@@ -54,6 +55,14 @@ function App() {
                 element={
                   <RotaComPermissao modulo="ordens_servico">
                     <OrdemServicoImpressaoPage />
+                  </RotaComPermissao>
+                }
+              />
+              <Route
+                path="/orcamento-calhas/:id/producao"
+                element={
+                  <RotaComPermissao modulo="orcamento_calhas">
+                    <CalhaProducaoImpressaoPage />
                   </RotaComPermissao>
                 }
               />

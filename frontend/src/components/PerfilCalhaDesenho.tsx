@@ -3,7 +3,7 @@ import type { SegmentoPerfil } from "../types/calha";
 
 const LARGURA_DESENHO = 420;
 const ALTURA_DESENHO = 260;
-const MARGEM_DESENHO = 40;
+const MARGEM_PADRAO = 40;
 const MAX_PX_POR_CM = 14;
 
 // Pontos em cm (y para cima); a escala é aplicada depois para o desenho sempre caber na área.
@@ -20,7 +20,18 @@ function pontosEmCm(segmentos: SegmentoPerfil[]) {
   return lista;
 }
 
-export function PerfilCalhaDesenho({ segmentos, className }: { segmentos: SegmentoPerfil[]; className?: string }) {
+export function PerfilCalhaDesenho({
+  segmentos,
+  className,
+  tamanhoTexto = 10,
+}: {
+  segmentos: SegmentoPerfil[];
+  className?: string;
+  /** Tamanho das medidas no desenho (em unidades do desenho de 420 de largura). */
+  tamanhoTexto?: number;
+}) {
+  // Etiquetas maiores precisam de mais folga nas bordas para não serem cortadas.
+  const MARGEM_DESENHO = Math.max(MARGEM_PADRAO, tamanhoTexto * 3.2);
   const pts = useMemo(() => {
     const brutos = pontosEmCm(segmentos);
     const xs = brutos.map((p) => p.x);
@@ -37,7 +48,7 @@ export function PerfilCalhaDesenho({ segmentos, className }: { segmentos: Segmen
     const sobraX = (LARGURA_DESENHO - larguraCm * escala) / 2;
     const sobraY = (ALTURA_DESENHO - alturaCm * escala) / 2;
     return brutos.map((p) => ({ x: (p.x - minX) * escala + sobraX, y: (p.y - minY) * escala + sobraY }));
-  }, [segmentos]);
+  }, [segmentos, MARGEM_DESENHO]);
 
   return (
     <svg width="100%" viewBox={`0 0 ${LARGURA_DESENHO} ${ALTURA_DESENHO}`} className={className ?? "max-w-[420px]"}>
@@ -54,14 +65,16 @@ export function PerfilCalhaDesenho({ segmentos, className }: { segmentos: Segmen
         const dy = b.y - a.y;
         const comprimento = Math.hypot(dx, dy) || 1;
         // Etiqueta afastada da linha, na perpendicular, para não cobrir o traço nem as juntas.
-        const cx = (a.x + b.x) / 2 + (-dy / comprimento) * 16;
-        const cy = (a.y + b.y) / 2 + (dx / comprimento) * 16;
+        const afastamento = 6 + tamanhoTexto;
+        const cx = (a.x + b.x) / 2 + (-dy / comprimento) * afastamento;
+        const cy = (a.y + b.y) / 2 + (dx / comprimento) * afastamento;
         const texto = `${seg.valorCm}cm`;
-        const larguraEtiqueta = texto.length * 6 + 8;
+        const larguraEtiqueta = texto.length * tamanhoTexto * 0.6 + tamanhoTexto * 0.8;
+        const alturaEtiqueta = tamanhoTexto * 1.6;
         return (
           <g key={i}>
-            <rect x={cx - larguraEtiqueta / 2} y={cy - 8} width={larguraEtiqueta} height={16} fill="#0f172a" rx={3} />
-            <text x={cx} y={cy + 3.5} fontSize={10} fill="white" textAnchor="middle">
+            <rect x={cx - larguraEtiqueta / 2} y={cy - alturaEtiqueta / 2} width={larguraEtiqueta} height={alturaEtiqueta} fill="#0f172a" rx={3} />
+            <text x={cx} y={cy + tamanhoTexto * 0.35} fontSize={tamanhoTexto} fill="white" textAnchor="middle">
               {texto}
             </text>
           </g>
