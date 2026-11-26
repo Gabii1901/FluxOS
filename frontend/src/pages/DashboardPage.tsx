@@ -347,7 +347,7 @@ export function DashboardPage() {
                   <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-sm font-semibold text-slate-900">OS por status</h2>
                     <Link to="/ordens-servico" className="text-xs font-medium text-slate-500 hover:text-slate-900">
-                      Ver todas →
+                      Ver todas
                     </Link>
                   </div>
                   <BarChart data={statusData} ariaLabel="Quantidade de ordens de serviço por status" />

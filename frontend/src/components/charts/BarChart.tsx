@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { chartTokens } from "../../lib/chartTokens";
-
 export interface BarChartDatum {
   id: string;
   label: string;
@@ -10,99 +7,36 @@ export interface BarChartDatum {
 interface Props {
   data: BarChartDatum[];
   ariaLabel: string;
+  /** Formata o número exibido ao lado da barra (ex.: moeda). */
+  formatValue?: (valor: number) => string;
 }
 
-const BAR_HEIGHT = 20;
-const ROW_GAP = 14;
-const LABEL_WIDTH = 168;
-
-export function BarChart({ data, ariaLabel }: Props) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const maxValue = Math.max(1, ...data.map((d) => d.value));
-  const rowHeight = BAR_HEIGHT + ROW_GAP;
-  const chartHeight = data.length * rowHeight;
-
+/** Barras horizontais em HTML: o texto nunca deforma, seja qual for a largura do card. */
+export function BarChart({ data, ariaLabel, formatValue = (v) => v.toLocaleString("pt-BR") }: Props) {
   if (data.length === 0) {
     return <p className="text-sm text-slate-500">Sem dados para exibir.</p>;
   }
 
+  const maior = Math.max(1, ...data.map((d) => d.value));
+
   return (
-    <div role="img" aria-label={ariaLabel} className="w-full overflow-x-auto">
-      <svg width="100%" height={chartHeight} viewBox={`0 0 640 ${chartHeight}`} preserveAspectRatio="none">
-        {data.map((item, index) => {
-          const y = index * rowHeight;
-          const trackX = LABEL_WIDTH;
-          const trackWidth = 640 - LABEL_WIDTH - 56;
-          const barWidth = (item.value / maxValue) * trackWidth;
-          const isHovered = hoveredId === item.id;
-
-          return (
-            <g
-              key={item.id}
-              onMouseEnter={() => setHoveredId(item.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              onFocus={() => setHoveredId(item.id)}
-              onBlur={() => setHoveredId(null)}
-              tabIndex={0}
-              style={{ cursor: "default", outline: "none" }}
-            >
-              <rect
-                x={0}
-                y={y}
-                width={640}
-                height={rowHeight}
-                fill={isHovered ? chartTokens.gridline : "transparent"}
-                opacity={isHovered ? 0.4 : 1}
-                rx={6}
-                style={{ transition: "fill 120ms ease" }}
-              />
-
-              <text
-                x={trackX - 12}
-                y={y + rowHeight / 2}
-                textAnchor="end"
-                dominantBaseline="middle"
-                fontSize={13}
-                fill={chartTokens.secondaryInk}
-              >
-                {item.label}
-              </text>
-
-              <rect
-                x={trackX}
-                y={y + (rowHeight - BAR_HEIGHT) / 2}
-                width={trackWidth}
-                height={BAR_HEIGHT}
-                rx={2}
-                fill={chartTokens.gridline}
-              />
-
-              <rect
-                x={trackX}
-                y={y + (rowHeight - BAR_HEIGHT) / 2}
-                width={Math.max(barWidth, item.value > 0 ? 4 : 0)}
-                height={BAR_HEIGHT}
-                rx={5}
-                fill={chartTokens.seriesBlue}
-                opacity={isHovered ? 0.85 : 1}
-                style={{ transition: "opacity 120ms ease, width 300ms ease" }}
-              />
-
-              <text
-                x={trackX + barWidth + 10}
-                y={y + rowHeight / 2}
-                dominantBaseline="middle"
-                fontSize={13}
-                fontWeight={600}
-                fill={chartTokens.primaryInk}
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {item.value}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
+    <ul role="img" aria-label={ariaLabel} className="space-y-3">
+      {data.map((item) => (
+        <li key={item.id} title={`${item.label}: ${formatValue(item.value)}`}>
+          <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
+            <span className="truncate text-slate-700">{item.label}</span>
+            <span className="font-medium text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+              {formatValue(item.value)}
+            </span>
+          </div>
+          <div className="h-1.5 rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-slate-800"
+              style={{ width: item.value > 0 ? `${Math.max(2, (item.value / maior) * 100)}%` : 0 }}
+            />
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

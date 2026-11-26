@@ -188,11 +188,12 @@ function AbaDespesas({ relatorio }: { relatorio: RelatorioFinanceiro }) {
           <BarChart
             data={meses.map((m) => ({ id: m.mes, label: nomeMes(m.mes), value: m.despesaPaga + m.despesaEmAberto }))}
             ariaLabel="Total de despesas por mês"
+            formatValue={moeda}
           />
         </section>
         <section className="rounded-xl border border-slate-200 bg-white p-5">
           <h2 className="mb-4 text-sm font-semibold text-slate-900">Despesas por categoria</h2>
-          <BarChart data={porCategoria} ariaLabel="Total de despesas por categoria" />
+          <BarChart data={porCategoria} ariaLabel="Total de despesas por categoria" formatValue={moeda} />
         </section>
       </div>
 
@@ -264,11 +265,12 @@ function AbaReceitas({ relatorio }: { relatorio: RelatorioFinanceiro }) {
           <BarChart
             data={meses.map((m) => ({ id: m.mes, label: nomeMes(m.mes), value: m.receitaRecebida }))}
             ariaLabel="Receitas recebidas por mês"
+            formatValue={moeda}
           />
         </section>
         <section className="rounded-xl border border-slate-200 bg-white p-5">
           <h2 className="mb-4 text-sm font-semibold text-slate-900">Recebido por forma de pagamento</h2>
-          <BarChart data={porMetodo} ariaLabel="Receitas recebidas por forma de pagamento" />
+          <BarChart data={porMetodo} ariaLabel="Receitas recebidas por forma de pagamento" formatValue={moeda} />
         </section>
       </div>
 
