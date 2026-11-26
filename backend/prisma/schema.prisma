@@ -28,6 +28,8 @@ model Empresa {
   // Assinatura desenhada na tela (PNG em data URL) que sai impressa nos recibos.
   assinaturaRecibo String?           @map("assinatura_recibo")
   assinanteNome    String?           @map("assinante_nome")
+  // Preferências de impressão do orçamento de calhas (modelo, textos, o que exibir).
+  modeloOrcamento  Json?             @map("modelo_orcamento")
 
   // Endereço — coletado no cadastro, exigido pelo Mercado Pago para emitir
   // boleto registrado (mesmo quem paga de cartão já deixa isso resolvido).

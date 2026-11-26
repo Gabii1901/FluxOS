@@ -18,6 +18,7 @@ const SELECT_EMPRESA = {
   logoUrl: true,
   assinaturaRecibo: true,
   assinanteNome: true,
+  modeloOrcamento: true,
   plano: true,
   statusAssinatura: true,
   formaPagamento: true,
@@ -158,6 +159,35 @@ export async function removerAssinatura(req: Request, res: Response) {
   const empresa = await prisma.empresa.update({
     where: { id: empresaIdDaRequisicao(req) },
     data: { assinaturaRecibo: null, assinanteNome: null },
+    select: SELECT_EMPRESA,
+  });
+  res.json(empresa);
+}
+
+const modeloOrcamentoSchema = z.object({
+  resumido: z.boolean(),
+  titulo: z.string().max(120),
+  mostrarValoresItens: z.boolean(),
+  mostrarMedidas: z.boolean(),
+  mostrarMaterial: z.boolean(),
+  mostrarDesenhos: z.boolean(),
+  mostrarMaoDeObra: z.boolean(),
+  mostrarAssinaturaCliente: z.boolean(),
+  apresentacao: z.string().max(2000),
+  prazoExecucao: z.string().max(300),
+  condicoesPagamento: z.string().max(1000),
+  validadeDias: z.number().int().min(0).max(365),
+  observacoes: z.string().max(3000),
+});
+
+export async function salvarModeloOrcamento(req: Request, res: Response) {
+  const resultado = modeloOrcamentoSchema.safeParse(req.body);
+  if (!resultado.success) {
+    return res.status(400).json({ erro: resultado.error.issues[0]?.message ?? "Dados inválidos" });
+  }
+  const empresa = await prisma.empresa.update({
+    where: { id: req.usuario!.empresaId },
+    data: { modeloOrcamento: resultado.data },
     select: SELECT_EMPRESA,
   });
   res.json(empresa);

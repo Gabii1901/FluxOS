@@ -2,7 +2,7 @@ import { Router } from "express";
 import * as empresaController from "../controllers/empresaController";
 import { asyncHandler } from "../middlewares/asyncHandler";
 import { requireAuth } from "../middlewares/requireAuth";
-import { requireAdminOuDesenvolvedor } from "../middlewares/requirePermissao";
+import { requireAdminOuDesenvolvedor, requirePermissao } from "../middlewares/requirePermissao";
 import { uploadLogo } from "../middlewares/upload";
 
 // Dados da empresa do usuário logado. Qualquer usuário pode ler (as impressões
@@ -16,3 +16,8 @@ empresaRoutes.post("/logo", requireAdminOuDesenvolvedor, uploadLogo.single("logo
 empresaRoutes.delete("/logo", requireAdminOuDesenvolvedor, asyncHandler(empresaController.removerLogo));
 empresaRoutes.put("/assinatura", requireAdminOuDesenvolvedor, asyncHandler(empresaController.salvarAssinatura));
 empresaRoutes.delete("/assinatura", requireAdminOuDesenvolvedor, asyncHandler(empresaController.removerAssinatura));
+empresaRoutes.put(
+  "/modelo-orcamento",
+  requirePermissao("orcamento_calhas", "editar"),
+  asyncHandler(empresaController.salvarModeloOrcamento),
+);

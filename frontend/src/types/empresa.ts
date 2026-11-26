@@ -5,6 +5,7 @@ export interface DadosEmpresa {
   logoUrl: string | null;
   assinaturaRecibo: string | null;
   assinanteNome: string | null;
+  modeloOrcamento: Record<string, unknown> | null;
   plano: string | null;
   statusAssinatura: string;
   formaPagamento: string | null;
