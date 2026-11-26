@@ -1,10 +1,10 @@
 -- Lançamento de notas de entrada (NF-e via XML)
-ALTER TABLE "pecas" ADD COLUMN "unidade" TEXT NOT NULL DEFAULT 'UN';
-ALTER TABLE "pecas" ADD COLUMN "preco_custo" DECIMAL(12,4) NOT NULL DEFAULT 0;
+ALTER TABLE "pecas" ADD COLUMN IF NOT EXISTS "unidade" TEXT NOT NULL DEFAULT 'UN';
+ALTER TABLE "pecas" ADD COLUMN IF NOT EXISTS "preco_custo" DECIMAL(12,4) NOT NULL DEFAULT 0;
 
-CREATE TABLE "notas_entrada" (
+CREATE TABLE IF NOT EXISTS "notas_entrada" (
     "id" TEXT NOT NULL,
-    "empresa_id" UUID NOT NULL,
+    "empresa_id" TEXT NOT NULL,
     "usuario_id" TEXT NOT NULL,
     "chave_acesso" TEXT NOT NULL,
     "numero" TEXT NOT NULL,
@@ -18,10 +18,10 @@ CREATE TABLE "notas_entrada" (
     CONSTRAINT "notas_entrada_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE "notas_entrada_itens" (
+CREATE TABLE IF NOT EXISTS "notas_entrada_itens" (
     "id" TEXT NOT NULL,
     "nota_id" TEXT NOT NULL,
-    "peca_id" UUID NOT NULL,
+    "peca_id" TEXT NOT NULL,
     "codigo_fornecedor" TEXT NOT NULL,
     "descricao_xml" TEXT NOT NULL,
     "ncm" TEXT,
@@ -36,19 +36,19 @@ CREATE TABLE "notas_entrada_itens" (
     CONSTRAINT "notas_entrada_itens_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE "produtos_fornecedor" (
+CREATE TABLE IF NOT EXISTS "produtos_fornecedor" (
     "id" TEXT NOT NULL,
-    "empresa_id" UUID NOT NULL,
+    "empresa_id" TEXT NOT NULL,
     "fornecedor_cnpj" TEXT NOT NULL,
     "codigo_fornecedor" TEXT NOT NULL,
-    "peca_id" UUID NOT NULL,
+    "peca_id" TEXT NOT NULL,
     "fator_conversao" DECIMAL(14,4) NOT NULL DEFAULT 1,
     CONSTRAINT "produtos_fornecedor_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "notas_entrada_empresa_id_chave_acesso_key" ON "notas_entrada"("empresa_id", "chave_acesso");
-CREATE INDEX "notas_entrada_itens_nota_id_idx" ON "notas_entrada_itens"("nota_id");
-CREATE UNIQUE INDEX "produtos_fornecedor_empresa_id_fornecedor_cnpj_codigo_fornecedor_key" ON "produtos_fornecedor"("empresa_id", "fornecedor_cnpj", "codigo_fornecedor");
+CREATE UNIQUE INDEX IF NOT EXISTS "notas_entrada_empresa_id_chave_acesso_key" ON "notas_entrada"("empresa_id", "chave_acesso");
+CREATE INDEX IF NOT EXISTS "notas_entrada_itens_nota_id_idx" ON "notas_entrada_itens"("nota_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "produtos_fornecedor_empresa_id_fornecedor_cnpj_codigo_fornecedor_key" ON "produtos_fornecedor"("empresa_id", "fornecedor_cnpj", "codigo_fornecedor");
 
 ALTER TABLE "notas_entrada" ADD CONSTRAINT "notas_entrada_empresa_id_fkey" FOREIGN KEY ("empresa_id") REFERENCES "empresas"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "notas_entrada_itens" ADD CONSTRAINT "notas_entrada_itens_nota_id_fkey" FOREIGN KEY ("nota_id") REFERENCES "notas_entrada"("id") ON DELETE CASCADE ON UPDATE CASCADE;

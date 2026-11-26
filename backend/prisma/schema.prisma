@@ -769,7 +769,7 @@ model ContaPagar {
 
 model NotaEntrada {
   id             String   @id @default(uuid())
-  empresaId      String   @map("empresa_id") @db.Uuid
+  empresaId      String   @map("empresa_id")
   usuarioId      String   @map("usuario_id")
   chaveAcesso    String   @map("chave_acesso")
   numero         String
@@ -792,7 +792,7 @@ model NotaEntrada {
 model NotaEntradaItem {
   id                String  @id @default(uuid())
   notaId            String  @map("nota_id")
-  pecaId            String  @map("peca_id") @db.Uuid
+  pecaId            String  @map("peca_id")
   codigoFornecedor  String  @map("codigo_fornecedor")
   descricaoXml      String  @map("descricao_xml")
   ncm               String?
@@ -821,10 +821,10 @@ model NotaEntradaItem {
 // fator de conversão usado, para pré-preencher as próximas importações.
 model ProdutoFornecedor {
   id               String  @id @default(uuid())
-  empresaId        String  @map("empresa_id") @db.Uuid
+  empresaId        String  @map("empresa_id")
   fornecedorCnpj   String  @map("fornecedor_cnpj")
   codigoFornecedor String  @map("codigo_fornecedor")
-  pecaId           String  @map("peca_id") @db.Uuid
+  pecaId           String  @map("peca_id")
   fatorConversao   Decimal @default(1) @map("fator_conversao") @db.Decimal(14, 4)
 
   empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
