@@ -72,13 +72,16 @@ export async function criar(req: Request, res: Response) {
     });
   });
 
-  res.status(201).json(achatarUsuario(usuario));
+  // contaExistente: o e-mail já tinha login no FluxOS — a senha digitada NÃO foi
+  // usada (a pessoa continua com a senha que já tinha). A tela avisa isso.
+  res.status(201).json({ ...achatarUsuario(usuario), contaExistente: !!contaExistente });
 }
 
 const atualizarUsuarioSchema = z.object({
   nome: z.string().min(1).optional(),
   papel: z.enum(PAPEIS).optional(),
   ativo: z.boolean().optional(),
+  senha: z.string().min(6, "A senha precisa ter ao menos 6 caracteres").optional(),
 });
 
 export async function atualizar(req: Request, res: Response) {
@@ -104,9 +107,28 @@ export async function atualizar(req: Request, res: Response) {
     return res.status(403).json({ erro: "Você não pode gerenciar um usuário com papel maior que o seu" });
   }
 
+  const { senha, ...dadosUsuario } = dados;
+
+  if (senha) {
+    // A senha é do login (conta), que pode estar ligado a outras empresas. Um
+    // administrador só troca a senha de quem pertence apenas à empresa dele.
+    const outrasEmpresas = await prisma.usuario.count({
+      where: { contaId: usuario.contaId, ativo: true, NOT: { empresaId: req.usuario!.empresaId } },
+    });
+    if (outrasEmpresas > 0 && req.usuario!.papel !== "desenvolvedor") {
+      return res.status(403).json({
+        erro: "Este usuário também acessa outra empresa, então a senha dele não pode ser trocada por aqui. Peça para ele usar a própria senha.",
+      });
+    }
+    await prisma.conta.update({
+      where: { id: usuario.contaId },
+      data: { senhaHash: await bcrypt.hash(senha, 10), emailVerificado: true },
+    });
+  }
+
   const atualizado = await prisma.usuario.update({
     where: { id },
-    data: dados,
+    data: dadosUsuario,
     select: usuarioResumoSelect,
   });
 

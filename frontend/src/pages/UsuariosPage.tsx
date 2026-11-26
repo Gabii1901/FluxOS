@@ -89,7 +89,13 @@ export function UsuariosPage() {
           senha: senha || undefined,
         });
       } else {
-        await api.post("/usuarios", { nome, email, senha, papel });
+        const { data } = await api.post<{ contaExistente?: boolean }>("/usuarios", { nome, email, senha, papel });
+        if (data.contaExistente) {
+          window.alert(
+            `O e-mail ${email} já tinha cadastro no FluxOS, então foi só liberado o acesso a esta empresa.\n\n` +
+              "A senha digitada NÃO foi usada: a pessoa entra com a senha que já tinha.",
+          );
+        }
       }
       await carregarUsuarios();
       fecharForm();
