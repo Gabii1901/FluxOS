@@ -21,18 +21,17 @@ function periodoUltimosMeses(qtd: number) {
   return { inicio: iso(new Date(hoje.getFullYear(), hoje.getMonth() - (qtd - 1), 1)), fim: iso(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)) };
 }
 
+function periodoDoAno(ano: number) {
+  return { inicio: `${ano}-01-01`, fim: `${ano}-12-31` };
+}
+
 const ATALHOS_PERIODO: { label: string; periodo: () => { inicio: string; fim: string } }[] = [
   { label: "Este mês", periodo: () => periodoUltimosMeses(1) },
   { label: "Últimos 3 meses", periodo: () => periodoUltimosMeses(3) },
   { label: "Últimos 6 meses", periodo: () => periodoUltimosMeses(6) },
   { label: "Últimos 12 meses", periodo: () => periodoUltimosMeses(12) },
-  {
-    label: "Este ano",
-    periodo: () => {
-      const ano = new Date().getFullYear();
-      return { inicio: `${ano}-01-01`, fim: `${ano}-12-31` };
-    },
-  },
+  { label: "Este ano", periodo: () => periodoDoAno(new Date().getFullYear()) },
+  { label: "Ano passado", periodo: () => periodoDoAno(new Date().getFullYear() - 1) },
 ];
 
 const moeda = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -66,7 +65,7 @@ function Cartao({ titulo, valor, cor }: { titulo: string; valor: number; cor?: s
 
 export function RelatoriosPage() {
   const [aba, setAba] = useState<Aba>("saldo");
-  const [periodo, setPeriodo] = useState(() => periodoUltimosMeses(6));
+  const [periodo, setPeriodo] = useState(() => periodoDoAno(new Date().getFullYear()));
   const [relatorio, setRelatorio] = useState<RelatorioFinanceiro | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
