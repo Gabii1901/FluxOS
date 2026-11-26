@@ -29,7 +29,11 @@ function simplificar(pontos: Ponto[], tolerancia: number): Ponto[] {
 }
 
 function segmentosDoTraco(pontos: Ponto[], cmPorPx: number, travarAngulos: boolean) {
-  const cantos = simplificar(pontos, 7);
+  return medirCantos(simplificar(pontos, 7), cmPorPx, travarAngulos);
+}
+
+/** Medida (0,5 cm) e ângulo de cada trecho entre cantos já definidos. */
+function medirCantos(cantos: Ponto[], cmPorPx: number, travarAngulos: boolean) {
   const lista: { valorCm: number; anguloGraus: number }[] = [];
   for (let i = 1; i < cantos.length; i++) {
     const dx = cantos[i].x - cantos[i - 1].x;
@@ -43,23 +47,84 @@ function segmentosDoTraco(pontos: Ponto[], cmPorPx: number, travarAngulos: boole
   return lista;
 }
 
-/** Junta os traços em um único perfil: cada traço continua de onde o anterior terminou. */
-function juntarTracos(tracos: Ponto[][], cmPorPx: number, travarAngulos: boolean): SegmentoPerfil[] {
-  const segmentos: SegmentoPerfil[] = [];
+// Distância (px) em que a ponta de um traço "gruda" numa ponta do desenho.
+const DISTANCIA_EMENDA = PX_QUADRADO * 1.5;
+
+const distancia = (a: Ponto, b: Ponto) => Math.hypot(a.x - b.x, a.y - b.y);
+
+/** Cantos do traço já endireitado, na posição em que foi desenhado. */
+function cantosDoTraco(traco: Ponto[], cmPorPx: number, travarAngulos: boolean): Ponto[] {
+  let { x, y } = traco[0];
+  const lista = [{ x, y }];
+  for (const s of segmentosDoTraco(traco, cmPorPx, travarAngulos)) {
+    const rad = (s.anguloGraus * Math.PI) / 180;
+    x += (Math.cos(rad) * s.valorCm) / cmPorPx;
+    y -= (Math.sin(rad) * s.valorCm) / cmPorPx;
+    lista.push({ x, y });
+  }
+  return lista;
+}
+
+/**
+ * Junta os traços num perfil único. Cada traço fica onde foi desenhado e é
+ * emendado na ponta do desenho (início ou fim) mais próxima de uma das suas
+ * pontas. Perto o bastante, gruda exatamente; longe, uma reta liga os dois.
+ */
+function montarCadeia(tracos: Ponto[][], cmPorPx: number, travarAngulos: boolean): Ponto[] {
+  let cadeia: Ponto[] = [];
   for (const traco of tracos) {
-    for (const s of segmentosDoTraco(traco, cmPorPx, travarAngulos)) {
-      const anterior = segmentos[segmentos.length - 1];
-      if (anterior && anterior.anguloGraus === s.anguloGraus) anterior.valorCm += s.valorCm;
-      else segmentos.push({ nome: `Segmento ${segmentos.length + 1}`, ...s });
+    const pontos = cantosDoTraco(traco, cmPorPx, travarAngulos);
+    if (pontos.length < 2) continue;
+    if (cadeia.length === 0) {
+      cadeia = pontos;
+      continue;
     }
+    const inicio = cadeia[0];
+    const fim = cadeia[cadeia.length - 1];
+    const a = pontos[0];
+    const b = pontos[pontos.length - 1];
+    const opcoes = [
+      { d: distancia(a, fim), noFim: true, inverter: false },
+      { d: distancia(b, fim), noFim: true, inverter: true },
+      { d: distancia(b, inicio), noFim: false, inverter: false },
+      { d: distancia(a, inicio), noFim: false, inverter: true },
+    ].sort((x, y) => x.d - y.d);
+    const melhor = opcoes[0];
+    const orientado = melhor.inverter ? [...pontos].reverse() : pontos;
+    const grudar = melhor.d <= DISTANCIA_EMENDA;
+
+    if (melhor.noFim) {
+      // A primeira ponta do traço encosta no fim do desenho.
+      const dx = grudar ? fim.x - orientado[0].x : 0;
+      const dy = grudar ? fim.y - orientado[0].y : 0;
+      const movido = orientado.map((p) => ({ x: p.x + dx, y: p.y + dy }));
+      cadeia = [...cadeia, ...(grudar ? movido.slice(1) : movido)];
+    } else {
+      // A última ponta do traço encosta no início do desenho.
+      const ultimo = orientado[orientado.length - 1];
+      const dx = grudar ? inicio.x - ultimo.x : 0;
+      const dy = grudar ? inicio.y - ultimo.y : 0;
+      const movido = orientado.map((p) => ({ x: p.x + dx, y: p.y + dy }));
+      cadeia = [...(grudar ? movido.slice(0, -1) : movido), ...cadeia];
+    }
+  }
+  return cadeia;
+}
+
+function segmentosDaCadeia(cadeia: Ponto[], cmPorPx: number, travarAngulos: boolean): SegmentoPerfil[] {
+  const segmentos: SegmentoPerfil[] = [];
+  for (const s of medirCantos(cadeia, cmPorPx, travarAngulos)) {
+    const anterior = segmentos[segmentos.length - 1];
+    if (anterior && anterior.anguloGraus === s.anguloGraus) anterior.valorCm += s.valorCm;
+    else segmentos.push({ nome: `Segmento ${segmentos.length + 1}`, ...s });
   }
   return segmentos;
 }
 
 /**
  * Área quadriculada para traçar o perfil da calha com mouse, dedo ou caneta.
- * Pode desenhar em vários traços: cada um é endireitado em segmentos e emendado
- * no final do anterior (ponto verde). Desfazer remove o último traço.
+ * Pode desenhar em vários traços, em qualquer ponto: cada um é endireitado, fica
+ * onde foi desenhado e se emenda na ponta verde mais próxima. Desfazer remove o último traço.
  */
 export function PerfilMaoLivre({ onSegmentos }: { onSegmentos: (segmentos: SegmentoPerfil[]) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -69,12 +134,13 @@ export function PerfilMaoLivre({ onSegmentos }: { onSegmentos: (segmentos: Segme
   const [travarAngulos, setTravarAngulos] = useState(true);
 
   const cmPorPx = cmPorQuadrado / PX_QUADRADO;
-  const segmentos = useMemo(() => juntarTracos(tracos, cmPorPx, travarAngulos), [tracos, cmPorPx, travarAngulos]);
+  const cadeia = useMemo(() => montarCadeia(tracos, cmPorPx, travarAngulos), [tracos, cmPorPx, travarAngulos]);
+  const segmentos = useMemo(() => segmentosDaCadeia(cadeia, cmPorPx, travarAngulos), [cadeia, cmPorPx, travarAngulos]);
 
-  // Pontos do perfil endireitado, a partir do início do primeiro traço.
+  // Pontos do perfil final (com medidas arredondadas), partindo do início da cadeia.
   const cantos = useMemo(() => {
-    if (tracos.length === 0) return [];
-    let { x, y } = tracos[0][0];
+    if (cadeia.length === 0) return [];
+    let { x, y } = cadeia[0];
     const lista = [{ x, y }];
     for (const s of segmentos) {
       const rad = ((s.anguloGraus ?? 0) * Math.PI) / 180;
@@ -83,7 +149,7 @@ export function PerfilMaoLivre({ onSegmentos }: { onSegmentos: (segmentos: Segme
       lista.push({ x, y });
     }
     return lista;
-  }, [tracos, segmentos, cmPorPx]);
+  }, [cadeia, segmentos, cmPorPx]);
 
   // Não mexe nos segmentos existentes só por abrir a aba; depois do 1º traço, acompanha tudo.
   const jaDesenhou = useRef(false);
@@ -115,23 +181,22 @@ export function PerfilMaoLivre({ onSegmentos }: { onSegmentos: (segmentos: Segme
       });
     }
 
-    // Ponto de onde o próximo traço continua
-    const fim = cantos[cantos.length - 1];
-    if (fim) {
+    // As duas pontas livres, onde um traço novo pode grudar
+    if (cantos.length > 1) {
       ctx.fillStyle = "#16a34a";
-      ctx.beginPath();
-      ctx.arc(fim.x, fim.y, 6, 0, Math.PI * 2);
-      ctx.fill();
+      [cantos[0], cantos[cantos.length - 1]].forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
     }
 
-    // Traço sendo feito agora, emendado no ponto verde
+    // Traço sendo feito agora, exatamente onde o dedo está
     if (atual && atual.length > 0) {
-      const dx = fim ? fim.x - atual[0].x : 0;
-      const dy = fim ? fim.y - atual[0].y : 0;
       ctx.strokeStyle = "#94a3b8";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      atual.forEach((p, i) => (i ? ctx.lineTo(p.x + dx, p.y + dy) : ctx.moveTo(p.x + dx, p.y + dy)));
+      atual.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
       ctx.stroke();
     }
   }, [cantos, atual]);
@@ -200,8 +265,8 @@ export function PerfilMaoLivre({ onSegmentos }: { onSegmentos: (segmentos: Segme
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-slate-500">
           {tracos.length === 0
-            ? "Desenhe o perfil. Pode tirar o dedo e continuar: o próximo traço emenda no ponto verde."
-            : `${tracos.length} ${tracos.length === 1 ? "traço" : "traços"} · o próximo continua do ponto verde.`}
+            ? "Desenhe em qualquer ponto. Pode tirar o dedo e continuar: perto de uma ponta verde, o traço gruda nela."
+            : `${tracos.length} ${tracos.length === 1 ? "traço" : "traços"} · comece perto de uma ponta verde para emendar.`}
         </p>
         <div className="flex gap-1">
           <button
