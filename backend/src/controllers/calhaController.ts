@@ -316,8 +316,13 @@ export async function descartarOrcamentoVazio(req: Request, res: Response) {
 const croquiSchema = z
   .string()
   .regex(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/, "Croqui inválido")
-  .max(900_000, "Croqui muito grande")
-  .nullable();
+  .max(900_000, "Croqui muito grande");
+
+const croquisSchema = z.array(croquiSchema).max(8, "No máximo 8 croquis por item");
+
+const desenhosExtrasSchema = z
+  .array(z.object({ nome: z.string().trim().min(1), segmentos: z.array(segmentoSchema).min(1) }))
+  .max(10, "No máximo 10 desenhos extras por item");
 
 const itemSchema = z.object({
   tipoServico: z.enum(TIPOS_SERVICO),
@@ -330,7 +335,8 @@ const itemSchema = z.object({
   materialId: z.string().optional(),
   perfilId: z.string().optional(),
   segmentosCustom: z.array(segmentoSchema).optional(),
-  croqui: z.lazy(() => croquiSchema).optional(),
+  desenhosExtras: desenhosExtrasSchema.optional(),
+  croquis: croquisSchema.optional(),
   valorUnitario: z.number().nonnegative().optional(),
   acrescimoPercentual: z.number().min(0).max(1000).default(30),
 });
@@ -482,20 +488,63 @@ export async function removerMaoDeObra(req: Request, res: Response) {
   res.status(204).send();
 }
 
-/** Salva (ou remove, com null) o croqui desenhado à mão de um item. */
-export async function salvarCroquiItem(req: Request, res: Response) {
+const desenhosItemSchema = z.object({
+  // Só vem quando o desenho principal mudou: aí o corte e o preço são recalculados.
+  segmentosCustom: z.array(segmentoSchema).min(1).optional(),
+  desenhosExtras: desenhosExtrasSchema,
+  croquis: croquisSchema,
+});
+
+/** Salva os desenhos (principal, extras) e croquis de um item já adicionado. */
+export async function salvarDesenhosItem(req: Request, res: Response) {
   const { id: orcamentoId, itemId } = req.params;
-  const { croqui } = z.object({ croqui: croquiSchema }).parse(req.body);
+  const resultado = desenhosItemSchema.safeParse(req.body);
+  if (!resultado.success) {
+    return res.status(400).json({ erro: resultado.error.issues[0]?.message ?? "Dados inválidos" });
+  }
+  const dados = resultado.data;
 
   const item = await prisma.orcamentoCalhaItem.findFirst({
     where: { id: itemId, orcamentoId, orcamento: { empresaId: req.usuario!.empresaId } },
   });
   if (!item) return res.status(404).json({ erro: "Item não encontrado" });
 
-  const atualizado = await prisma.orcamentoCalhaItem.update({
-    where: { id: itemId },
-    data: { croqui },
-    include: { material: true, perfil: true },
+  const data: Prisma.OrcamentoCalhaItemUpdateInput = {
+    desenhosExtras: dados.desenhosExtras,
+    croquis: dados.croquis,
+    croqui: null,
+  };
+
+  if (dados.segmentosCustom && ehServicoMetal(item.tipoServico)) {
+    // O corte da chapa é a soma dos segmentos do desenho principal.
+    const corteLargura = Math.round(dados.segmentosCustom.reduce((s, x) => s + x.valorCm, 0) * 10) / 10;
+    const precoM2Material = await buscarPrecoMaterial(req.usuario!.empresaId, item.materialId ?? undefined);
+    const custoCalculado = calcularCustoItem({
+      tipoServico: item.tipoServico,
+      quantidade: Number(item.quantidade),
+      unidadeQuantidade: item.unidadeQuantidade as (typeof UNIDADES)[number],
+      corteLargura,
+      unidadeCorte: "cm",
+      precoM2Material,
+      valorUnitario: item.valorUnitario === null ? null : Number(item.valorUnitario),
+    });
+    Object.assign(data, {
+      segmentosCustom: dados.segmentosCustom,
+      corteLargura,
+      unidadeCorte: "cm",
+      custoCalculado,
+      precoCalculado: calcularPrecoComMarkup(custoCalculado, Number(item.acrescimoPercentual)),
+    });
+  }
+
+  const atualizado = await prisma.$transaction(async (tx) => {
+    const salvo = await tx.orcamentoCalhaItem.update({
+      where: { id: itemId },
+      data,
+      include: { material: true, perfil: true },
+    });
+    await recalcularEAtualizarOrcamento(tx, orcamentoId);
+    return salvo;
   });
   res.json(atualizado);
 }

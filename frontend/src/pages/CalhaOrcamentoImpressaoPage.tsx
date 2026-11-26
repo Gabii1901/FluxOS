@@ -11,6 +11,7 @@ import {
   TIPO_SERVICO_LABEL,
   type OrcamentoCalha,
   type OrcamentoCalhaItem,
+  croquisDoItem,
 } from "../types/calha";
 
 interface ModeloOrcamento {
@@ -158,9 +159,14 @@ export function CalhaOrcamentoImpressaoPage() {
     !modelo.mostrarMaoDeObra && totalMaoDeObra > 0 ? "mão de obra" : null,
     !modelo.mostrarDespesas && totalDespesas > 0 ? "despesas" : null,
   ].filter(Boolean);
-  const itensComFormato = orcamento.itens
-    .map((item) => ({ item, segmentos: item.segmentosCustom ?? item.perfil?.segmentos ?? null }))
-    .filter((x): x is { item: OrcamentoCalhaItem; segmentos: NonNullable<typeof x.segmentos> } => !!x.segmentos?.length);
+  // Um bloco por desenho: o principal de cada item e os complementares.
+  const itensComFormato = orcamento.itens.flatMap((item) => {
+    const principal = item.segmentosCustom ?? item.perfil?.segmentos ?? null;
+    return [
+      ...(principal?.length ? [{ item, segmentos: principal, chave: item.id, nome: null as string | null }] : []),
+      ...(item.desenhosExtras ?? []).map((d, j) => ({ item, segmentos: d.segmentos, chave: `${item.id}-${j}`, nome: d.nome })),
+    ];
+  });
 
   const emissao = new Date(orcamento.criadoEm);
   const validoAte = new Date(emissao);
@@ -439,11 +445,11 @@ export function CalhaOrcamentoImpressaoPage() {
             <section className="mb-6 break-inside-avoid">
               <p className="mb-2 text-xs text-slate-400">Formato das peças</p>
               <div className="space-y-4">
-                {itensComFormato.map(({ item, segmentos }) => (
-                  <div key={item.id} className="break-inside-avoid rounded-lg border border-slate-200 p-3">
+                {itensComFormato.map(({ item, segmentos, chave, nome }) => (
+                  <div key={chave} className="break-inside-avoid rounded-lg border border-slate-200 p-3">
                     <p className="mb-1 text-sm font-medium">
                       {nomeServico(item)}
-                      {item.perfil ? ` · ${item.perfil.nome}` : ""}
+                      {nome ? ` · ${nome}` : item.perfil ? ` · ${item.perfil.nome}` : ""}
                       <span className="font-normal text-slate-500"> — {medida(item)}</span>
                     </p>
                     <div className="flex justify-center">
@@ -459,22 +465,23 @@ export function CalhaOrcamentoImpressaoPage() {
             </section>
           )}
 
-          {modelo.mostrarCroquis && orcamento.itens.some((i) => i.croqui) && (
+          {modelo.mostrarCroquis && orcamento.itens.some((i) => croquisDoItem(i).length > 0) && (
             <section className="mb-6">
               <p className="mb-2 text-xs text-slate-400">Croquis</p>
               <div className="space-y-4">
-                {orcamento.itens
-                  .filter((i) => i.croqui)
-                  .map((item) => (
-                    <div key={item.id} className="break-inside-avoid rounded-lg border border-slate-200 p-3">
+                {orcamento.itens.flatMap((item) =>
+                  croquisDoItem(item).map((croqui, j, lista) => (
+                    <div key={`${item.id}-${j}`} className="break-inside-avoid rounded-lg border border-slate-200 p-3">
                       <p className="mb-2 text-sm font-medium">
                         {nomeServico(item)}
                         {item.perfil ? ` · ${item.perfil.nome}` : ""}
                         {item.descricao ? ` · ${item.descricao}` : ""}
+                        {lista.length > 1 ? ` · croqui ${j + 1}` : ""}
                       </p>
-                      <img src={item.croqui!} alt={`Croqui de ${nomeServico(item)}`} className="w-full" />
+                      <img src={croqui} alt={`Croqui de ${nomeServico(item)}`} className="w-full" />
                     </div>
-                  ))}
+                  )),
+                )}
               </div>
             </section>
           )}

@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import {
   SERVICOS_EM_CHAPA,
   TIPO_SERVICO_LABEL,
+  croquisDoItem,
   type OrcamentoCalha,
   type OrcamentoCalhaItem,
   type UnidadeComprimento,
@@ -53,6 +54,22 @@ export function CalhaProducaoImpressaoPage() {
         .filter((item) => SERVICOS_EM_CHAPA.includes(item.tipoServico))
         .map((item) => ({ item, segmentos: item.segmentosCustom ?? item.perfil?.segmentos ?? [] })),
     [orcamento],
+  );
+
+  // Cada desenho complementar vira um quadradinho a mais, logo depois da sua peça.
+  const quadros = useMemo(
+    () =>
+      pecas.flatMap(({ item, segmentos }, i) => [
+        { item, segmentos, rotulo: `${i + 1}`, nomeDesenho: null as string | null, principal: true },
+        ...(item.desenhosExtras ?? []).map((d, j) => ({
+          item,
+          segmentos: d.segmentos,
+          rotulo: `${i + 1}${String.fromCharCode(98 + j)}`,
+          nomeDesenho: d.nome,
+          principal: false,
+        })),
+      ]),
+    [pecas],
   );
 
   const outrosItens = (orcamento?.itens ?? []).filter((item) => !SERVICOS_EM_CHAPA.includes(item.tipoServico));
@@ -127,13 +144,19 @@ export function CalhaProducaoImpressaoPage() {
         <p className="text-sm text-slate-500">Este orçamento não tem peças em chapa.</p>
       ) : (
         <section className={`grid ${gradeCls} gap-2.5`}>
-          {pecas.map(({ item, segmentos }, i) => {
+          {quadros.map(({ item, segmentos, rotulo, nomeDesenho, principal }) => {
             const corte = segmentos.reduce((s, x) => s + x.valorCm, 0);
             return (
-              <article key={item.id} className="break-inside-avoid rounded-md border border-slate-300 p-2 text-[11px] leading-tight">
+              <article key={`${item.id}-${rotulo}`} className="break-inside-avoid rounded-md border border-slate-300 p-2 text-[11px] leading-tight">
                 <p className="font-semibold">
-                  {i + 1}. {nomeItem(item)}
-                  {item.perfil ? ` · ${item.perfil.nome}` : item.segmentosCustom ? " · personalizado" : ""}
+                  {rotulo}. {nomeItem(item)}
+                  {nomeDesenho
+                    ? ` · ${nomeDesenho}`
+                    : item.perfil
+                      ? ` · ${item.perfil.nome}`
+                      : item.segmentosCustom
+                        ? " · personalizado"
+                        : ""}
                 </p>
                 <p className="text-slate-600">
                   {num(Number(item.quantidade))}
@@ -174,9 +197,11 @@ export function CalhaProducaoImpressaoPage() {
                   <p className="my-3 text-center text-slate-400">Sem desenho de perfil</p>
                 )}
 
-                {comCroquis && item.croqui && (
-                  <img src={item.croqui} alt={`Croqui ${i + 1}`} className="mt-1 w-full rounded border border-slate-200" />
-                )}
+                {comCroquis &&
+                  principal &&
+                  croquisDoItem(item).map((c, j) => (
+                    <img key={j} src={c} alt={`Croqui ${rotulo}.${j + 1}`} className="mt-1 w-full rounded border border-slate-200" />
+                  ))}
               </article>
             );
           })}

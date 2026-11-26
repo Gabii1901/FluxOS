@@ -22,7 +22,7 @@ import { usuariosRoutes } from "./routes/usuariosRoutes";
 export const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: "1mb" })); // assinatura do recibo vem como imagem base64
+app.use(express.json({ limit: "8mb" })); // assinatura do recibo vem como imagem base64
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));

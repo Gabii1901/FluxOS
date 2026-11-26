@@ -45,6 +45,11 @@ export const STATUS_ORCAMENTO_CALHA_LABEL: Record<StatusOrcamentoCalha, string> 
   recusado: "Recusado",
 };
 
+export interface DesenhoPerfil {
+  nome: string;
+  segmentos: SegmentoPerfil[];
+}
+
 export interface SegmentoPerfil {
   nome: string;
   valorCm: number;
@@ -86,7 +91,9 @@ export interface OrcamentoCalhaItem {
   perfilId: string | null;
   perfil: PerfilCalha | null;
   segmentosCustom: SegmentoPerfil[] | null;
-  croqui: string | null;
+  croqui: string | null; // antigo, só em dados anteriores
+  desenhosExtras: DesenhoPerfil[] | null;
+  croquis: string[] | null;
   valorUnitario: string | null;
   acrescimoPercentual: string;
   custoCalculado: string;
@@ -134,4 +141,10 @@ export interface OrcamentoCalhaResumo {
   status: StatusOrcamentoCalha;
   precoTotal: string;
   criadoEm: string;
+}
+
+/** Croquis de um item (inclui o croqui único antigo, se houver). */
+export function croquisDoItem(item: Pick<OrcamentoCalhaItem, "croqui" | "croquis">): string[] {
+  if (item.croquis && item.croquis.length) return item.croquis;
+  return item.croqui ? [item.croqui] : [];
 }

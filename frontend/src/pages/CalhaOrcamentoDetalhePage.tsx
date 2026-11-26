@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CampoMoeda } from "../components/CampoMoeda";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { PerfilCalhaEditor } from "../components/PerfilCalhaEditor";
+import { PerfilCalhaEditor, type ResultadoDesenhos } from "../components/PerfilCalhaEditor";
 import { QuadroCroqui } from "../components/QuadroCroqui";
 import { api } from "../lib/api";
 import { descartarOrcamentoCalhaSeVazio } from "../lib/descarteOrcamentoCalha";
@@ -17,6 +17,8 @@ import {
   type TipoMedidaOrcamento,
   type TipoServicoCalha,
   type UnidadeComprimento,
+  croquisDoItem,
+  type DesenhoPerfil,
 } from "../types/calha";
 import type { Cliente } from "../types/cliente";
 import type { UsuarioResumo } from "../types/usuario";
@@ -46,7 +48,7 @@ export function CalhaOrcamentoDetalhePage() {
   const navigate = useNavigate();
 
   const [orcamento, setOrcamento] = useState<OrcamentoCalha | null>(null);
-  const [croquiItemId, setCroquiItemId] = useState<string | null>(null);
+  const [desenhosItemId, setDesenhosItemId] = useState<string | null>(null);
   const [materiais, setMateriais] = useState<MaterialChapa[]>([]);
   const [perfis, setPerfis] = useState<PerfilCalha[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -131,13 +133,17 @@ export function CalhaOrcamentoDetalhePage() {
     recarregar();
   }
 
-  async function handleSalvarCroqui(itemId: string, croqui: string | null) {
+  async function handleSalvarDesenhos(itemId: string, resultado: ResultadoDesenhos) {
     try {
-      await api.put(`/calhas/orcamentos/${id}/itens/${itemId}/croqui`, { croqui });
-      setCroquiItemId(null);
+      await api.put(`/calhas/orcamentos/${id}/itens/${itemId}/desenhos`, {
+        segmentosCustom: resultado.principal && resultado.principal.length > 0 ? resultado.principal : undefined,
+        desenhosExtras: resultado.extras,
+        croquis: resultado.croquis,
+      });
+      setDesenhosItemId(null);
       recarregar();
     } catch (e: any) {
-      window.alert(e?.response?.data?.erro ?? "Não foi possível salvar o croqui.");
+      window.alert(e?.response?.data?.erro ?? "Não foi possível salvar os desenhos.");
     }
   }
 
@@ -340,16 +346,18 @@ export function CalhaOrcamentoDetalhePage() {
                     <td className="px-4 py-3 font-medium text-slate-900">{formatarMoeda(Number(item.precoCalculado))}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-3">
-                        {item.croqui && (
-                          <img src={item.croqui} alt="Croqui" className="h-8 w-12 rounded border border-slate-200 object-cover" />
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setCroquiItemId(item.id)}
-                          className="whitespace-nowrap text-xs font-medium text-slate-600 hover:underline"
-                        >
-                          {item.croqui ? "Editar croqui" : "Croqui"}
-                        </button>
+                        {(() => {
+                          const qtd = (item.desenhosExtras?.length ?? 0) + croquisDoItem(item).length;
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setDesenhosItemId(item.id)}
+                              className="whitespace-nowrap text-xs font-medium text-slate-600 hover:underline"
+                            >
+                              Desenhos{qtd > 0 ? ` (+${qtd})` : ""}
+                            </button>
+                          );
+                        })()}
                         <button type="button" onClick={() => handleRemoverItem(item.id)} className="text-xs font-medium text-red-700 hover:underline">
                           Remover
                         </button>
@@ -363,14 +371,22 @@ export function CalhaOrcamentoDetalhePage() {
         )}
       </section>
 
-      {croquiItemId && orcamento && (
-        <QuadroCroqui
-          titulo="Croqui do item"
-          imagemInicial={orcamento.itens.find((i) => i.id === croquiItemId)?.croqui}
-          onFechar={() => setCroquiItemId(null)}
-          onSalvar={(imagem) => handleSalvarCroqui(croquiItemId, imagem)}
-        />
-      )}
+      {desenhosItemId &&
+        orcamento &&
+        (() => {
+          const item = orcamento.itens.find((i) => i.id === desenhosItemId);
+          if (!item) return null;
+          return (
+            <PerfilCalhaEditor
+              segmentosIniciais={item.segmentosCustom ?? item.perfil?.segmentos ?? []}
+              extrasIniciais={item.desenhosExtras ?? []}
+              croquisIniciais={croquisDoItem(item)}
+              nomeInicial={item.perfil?.nome ?? (item.tipoServico === "venda" ? "Venda" : TIPO_SERVICO_LABEL[item.tipoServico])}
+              onFechar={() => setDesenhosItemId(null)}
+              onUsar={(resultado) => handleSalvarDesenhos(item.id, resultado)}
+            />
+          );
+        })()}
 
       {/* Mão de obra */}
       <section className="mb-8">
@@ -500,7 +516,8 @@ function ItemForm({
   const [perfilId, setPerfilId] = useState("");
   const [segmentosCustom, setSegmentosCustom] = useState<SegmentoPerfil[] | null>(null);
   const [editorAberto, setEditorAberto] = useState(false);
-  const [croqui, setCroqui] = useState<string | null>(null);
+  const [desenhosExtras, setDesenhosExtras] = useState<DesenhoPerfil[]>([]);
+  const [croquis, setCroquis] = useState<string[]>([]);
   const [croquiAberto, setCroquiAberto] = useState(false);
   const [valorUnitario, setValorUnitario] = useState("");
   const [acrescimoPercentual, setAcrescimoPercentual] = useState(acrescimoPadrao);
@@ -555,7 +572,8 @@ function ItemForm({
         perfilId: ehMetal && perfilId ? perfilId : undefined,
         valorUnitario: !ehMetal ? Number(valorUnitario.replace(",", ".")) || 0 : undefined,
         segmentosCustom: ehMetal && segmentosCustom ? segmentosCustom : undefined,
-        croqui: croqui ?? undefined,
+        desenhosExtras: ehMetal && desenhosExtras.length ? desenhosExtras : undefined,
+        croquis: croquis.length ? croquis : undefined,
         acrescimoPercentual,
       });
       onAdicionado();
@@ -685,14 +703,16 @@ function ItemForm({
                 Formato personalizado — {segmentosCustom.length} segmentos, total {totalSegmentosCustom?.toFixed(1)}cm
               </p>
             )}
-            {croqui && (
-              <div className="mt-2 flex items-center gap-3">
-                <img src={croqui} alt="Croqui" className="h-12 w-20 rounded border border-slate-200 object-cover" />
-                <span className="text-xs text-slate-600">Croqui anexado</span>
-                <button type="button" onClick={() => setCroqui(null)} className="text-xs font-medium text-red-700 hover:underline">
-                  Remover
-                </button>
-              </div>
+            {(desenhosExtras.length > 0 || croquis.length > 0) && (
+              <p className="mt-1 text-xs text-slate-600">
+                {[
+                  desenhosExtras.length ? `${desenhosExtras.length} desenho(s) complementar(es)` : null,
+                  croquis.length ? `${croquis.length} croqui(s)` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}{" "}
+                — clique em Desenhar para ver ou mudar.
+              </p>
             )}
           </div>
         </>
@@ -702,14 +722,16 @@ function ItemForm({
         <PerfilCalhaEditor
           segmentosIniciais={segmentosCustom ?? perfilSelecionado?.segmentos ?? []}
           nomeInicial={perfilSelecionado?.nome}
-          croquiInicial={croqui}
+          extrasIniciais={desenhosExtras}
+          croquisIniciais={croquis}
           onFechar={() => setEditorAberto(false)}
-          onUsar={(segmentos, novoCroqui) => {
-            if (segmentos && segmentos.length > 0) {
-              setSegmentosCustom(segmentos);
-              aplicarCorteDoFormato(segmentos);
+          onUsar={({ principal, extras, croquis: novosCroquis }) => {
+            if (principal && principal.length > 0) {
+              setSegmentosCustom(principal);
+              aplicarCorteDoFormato(principal);
             }
-            setCroqui(novoCroqui);
+            setDesenhosExtras(extras);
+            setCroquis(novosCroquis);
             setEditorAberto(false);
           }}
         />
@@ -717,31 +739,36 @@ function ItemForm({
 
       {!ehMetal && (
       <div className="mb-4">
-        <label className={rotulo}>Croqui (caimento, fora do padrão)</label>
-        <div className="flex items-center gap-3">
-          {croqui && <img src={croqui} alt="Croqui" className="h-14 w-24 rounded border border-slate-200 object-cover" />}
+        <label className={rotulo}>Croquis (caimento, fora do padrão)</label>
+        <div className="flex flex-wrap items-center gap-3">
+          {croquis.map((c, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <img src={c} alt={`Croqui ${i + 1}`} className="h-14 w-24 rounded border border-slate-200 object-cover" />
+              <button
+                type="button"
+                onClick={() => setCroquis((lista) => lista.filter((_, j) => j !== i))}
+                className="text-xs font-medium text-red-700 hover:underline"
+              >
+                Remover
+              </button>
+            </div>
+          ))}
           <button
             type="button"
             onClick={() => setCroquiAberto(true)}
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:border-slate-900"
           >
-            {croqui ? "Editar croqui" : "Desenhar croqui"}
+            {croquis.length ? "+ Outro croqui" : "Desenhar croqui"}
           </button>
-          {croqui && (
-            <button type="button" onClick={() => setCroqui(null)} className="text-xs font-medium text-red-700 hover:underline">
-              Remover
-            </button>
-          )}
         </div>
       </div>
       )}
 
       {croquiAberto && (
         <QuadroCroqui
-          imagemInicial={croqui}
           onFechar={() => setCroquiAberto(false)}
           onSalvar={(imagem) => {
-            setCroqui(imagem);
+            if (imagem) setCroquis((lista) => [...lista, imagem]);
             setCroquiAberto(false);
           }}
         />
