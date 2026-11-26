@@ -181,7 +181,12 @@ export function PerfilMaoLivre({ onSegmentos }: { onSegmentos: (segmentos: Segme
           e.currentTarget.setPointerCapture(e.pointerId);
           setAtual([ponto(e)]);
         }}
-        onPointerMove={(e) => atual && setAtual((t) => (t ? [...t, ponto(e)] : t))}
+        onPointerMove={(e) => {
+          if (!atual) return;
+          // Lê a posição já aqui: o evento não existe mais quando o React aplica o setState.
+          const p = ponto(e);
+          setAtual((t) => (t ? [...t, p] : t));
+        }}
         onPointerUp={terminar}
         onPointerCancel={terminar}
         className="w-full cursor-crosshair touch-none rounded-lg border border-slate-200 bg-white"
