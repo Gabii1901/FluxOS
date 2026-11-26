@@ -25,6 +25,9 @@ model Empresa {
   valorPersonalizado Decimal?        @db.Decimal(10, 2) @map("valor_personalizado")
   // Caminho público da logo enviada pela empresa (ex.: /uploads/logos/<uuid>.png).
   logoUrl          String?           @map("logo_url")
+  // Assinatura desenhada na tela (PNG em data URL) que sai impressa nos recibos.
+  assinaturaRecibo String?           @map("assinatura_recibo")
+  assinanteNome    String?           @map("assinante_nome")
 
   // Endereço — coletado no cadastro, exigido pelo Mercado Pago para emitir
   // boleto registrado (mesmo quem paga de cartão já deixa isso resolvido).
@@ -49,6 +52,8 @@ model Empresa {
   orcamentosCalha  OrcamentoCalha[]
   categoriasContaPagar CategoriaContaPagar[]
   contasPagar      ContaPagar[]
+  notasEntrada     NotaEntrada[]
+  produtosFornecedor ProdutoFornecedor[]
 
   @@map("empresas")
 }
@@ -345,12 +350,18 @@ model Peca {
   nome              String
   quantidadeEstoque Decimal @default(0) @map("quantidade_estoque") @db.Decimal(10, 2)
   valorUnitario     Decimal @default(0) @map("valor_unitario") @db.Decimal(12, 2)
+  // Unidade de controle do estoque (UN, CX, KG, M...).
+  unidade           String  @default("UN")
+  // Último custo por unidade de estoque, atualizado no lançamento de NF-e.
+  precoCusto        Decimal @default(0) @map("preco_custo") @db.Decimal(12, 4)
   ativo             Boolean @default(true)
 
   empresa        Empresa               @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   orcamentoItens OrcamentoItem[]
   osPecas        OsPecaUtilizada[]
   movimentacoes  MovimentacaoEstoque[]
+  notaItens      NotaEntradaItem[]
+  produtosFornecedor ProdutoFornecedor[]
 
   @@unique([empresaId, sku])
   @@map("pecas")
@@ -739,12 +750,86 @@ model ContaPagar {
   grupoRecorrenciaId  String?   @map("grupo_recorrencia_id")
   parcela             Int?
   totalParcelas       Int?      @map("total_parcelas")
+  // Preenchido quando a conta veio das duplicatas de uma NF-e de entrada.
+  notaEntradaId       String?   @map("nota_entrada_id")
   criadoEm            DateTime  @default(now()) @map("criado_em")
 
   empresa   Empresa              @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   categoria CategoriaContaPagar? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+  notaEntrada NotaEntrada?       @relation(fields: [notaEntradaId], references: [id], onDelete: SetNull)
 
   @@index([empresaId, vencimento])
   @@index([grupoRecorrenciaId])
   @@map("contas_pagar")
+}
+
+// ============================================================
+// NOTAS DE ENTRADA (NF-e importada por XML)
+// ============================================================
+
+model NotaEntrada {
+  id             String   @id @default(uuid())
+  empresaId      String   @map("empresa_id") @db.Uuid
+  usuarioId      String   @map("usuario_id")
+  chaveAcesso    String   @map("chave_acesso")
+  numero         String
+  serie          String?
+  fornecedorCnpj String   @map("fornecedor_cnpj")
+  fornecedorNome String   @map("fornecedor_nome")
+  dataEmissao    DateTime @map("data_emissao")
+  valorProdutos  Decimal  @map("valor_produtos") @db.Decimal(12, 2)
+  valorTotal     Decimal  @map("valor_total") @db.Decimal(12, 2)
+  criadoEm       DateTime @default(now()) @map("criado_em")
+
+  empresa Empresa           @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  itens   NotaEntradaItem[]
+  contasPagar ContaPagar[]
+
+  @@unique([empresaId, chaveAcesso])
+  @@map("notas_entrada")
+}
+
+model NotaEntradaItem {
+  id                String  @id @default(uuid())
+  notaId            String  @map("nota_id")
+  pecaId            String  @map("peca_id") @db.Uuid
+  codigoFornecedor  String  @map("codigo_fornecedor")
+  descricaoXml      String  @map("descricao_xml")
+  ncm               String?
+  unidadeXml        String  @map("unidade_xml")
+  quantidadeXml     Decimal @map("quantidade_xml") @db.Decimal(14, 4)
+  valorUnitarioXml  Decimal @map("valor_unitario_xml") @db.Decimal(14, 4)
+  valorTotal        Decimal @map("valor_total") @db.Decimal(12, 2)
+  valorFrete        Decimal @default(0) @map("valor_frete") @db.Decimal(12, 2)
+  valorIpi          Decimal @default(0) @map("valor_ipi") @db.Decimal(12, 2)
+  // Quantas unidades de estoque cabem em 1 unidade da nota (ex.: CX com 12 = 12).
+  fatorConversao    Decimal @map("fator_conversao") @db.Decimal(14, 4)
+  quantidadeEntrada Decimal @map("quantidade_entrada") @db.Decimal(14, 4)
+  custoUnitario     Decimal @map("custo_unitario") @db.Decimal(12, 4)
+  precoVenda        Decimal @map("preco_venda") @db.Decimal(12, 2)
+  // A peça foi cadastrada por esta nota (ao excluir a nota, ela pode ser removida).
+  pecaCriada        Boolean @default(false) @map("peca_criada")
+
+  nota NotaEntrada @relation(fields: [notaId], references: [id], onDelete: Cascade)
+  peca Peca        @relation(fields: [pecaId], references: [id])
+
+  @@index([notaId])
+  @@map("notas_entrada_itens")
+}
+
+// Lembra qual peça corresponde ao código do produto de cada fornecedor, e o
+// fator de conversão usado, para pré-preencher as próximas importações.
+model ProdutoFornecedor {
+  id               String  @id @default(uuid())
+  empresaId        String  @map("empresa_id") @db.Uuid
+  fornecedorCnpj   String  @map("fornecedor_cnpj")
+  codigoFornecedor String  @map("codigo_fornecedor")
+  pecaId           String  @map("peca_id") @db.Uuid
+  fatorConversao   Decimal @default(1) @map("fator_conversao") @db.Decimal(14, 4)
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  peca    Peca    @relation(fields: [pecaId], references: [id], onDelete: Cascade)
+
+  @@unique([empresaId, fornecedorCnpj, codigoFornecedor])
+  @@map("produtos_fornecedor")
 }

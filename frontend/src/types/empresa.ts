@@ -3,6 +3,8 @@ export interface DadosEmpresa {
   nome: string;
   cnpj: string | null;
   logoUrl: string | null;
+  assinaturaRecibo: string | null;
+  assinanteNome: string | null;
   plano: string | null;
   statusAssinatura: string;
   formaPagamento: string | null;

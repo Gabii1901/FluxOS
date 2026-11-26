@@ -18,6 +18,11 @@ faturasRoutes.post(
   requirePermissao("financeiro", "criar"),
   asyncHandler(faturasController.criarPagamento),
 );
+faturasRoutes.get(
+  "/pagamentos/:id/recibo",
+  requirePermissao("financeiro", "ver"),
+  asyncHandler(faturasController.recibo),
+);
 faturasRoutes.patch(
   "/pagamentos/:id/vencimento",
   requirePermissao("financeiro", "editar"),

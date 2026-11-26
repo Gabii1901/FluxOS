@@ -10,6 +10,7 @@ import { consultasRoutes } from "./routes/consultasRoutes";
 import { contasPagarRoutes } from "./routes/contasPagarRoutes";
 import { empresaRoutes } from "./routes/empresaRoutes";
 import { faturasRoutes } from "./routes/faturasRoutes";
+import { notasEntradaRoutes } from "./routes/notasEntradaRoutes";
 import { orcamentosRoutes } from "./routes/orcamentosRoutes";
 import { ordensServicoRoutes } from "./routes/ordensServicoRoutes";
 import { pagamentosRoutes } from "./routes/pagamentosRoutes";
@@ -20,7 +21,7 @@ import { usuariosRoutes } from "./routes/usuariosRoutes";
 export const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" })); // assinatura do recibo vem como imagem base64
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
@@ -34,6 +35,7 @@ app.use("/orcamentos", orcamentosRoutes);
 app.use("/calhas", calhaRoutes);
 app.use("/faturas", faturasRoutes);
 app.use("/contas-pagar", contasPagarRoutes);
+app.use("/notas-entrada", notasEntradaRoutes);
 app.use("/consultas", consultasRoutes);
 app.use("/empresa", empresaRoutes);
 app.use("/permissoes", permissoesRoutes);

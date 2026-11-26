@@ -272,3 +272,42 @@ export async function remover(req: Request, res: Response) {
 
   res.status(204).send();
 }
+
+/** Dados para imprimir o recibo de um pagamento já recebido. */
+export async function recibo(req: Request, res: Response) {
+  const pagamento = await prisma.pagamento.findFirst({
+    where: { id: req.params.id, fatura: { ordemServico: { empresaId: req.usuario!.empresaId } } },
+    include: {
+      fatura: {
+        select: {
+          numero: true,
+          valorTotal: true,
+          ordemServico: {
+            select: {
+              numero: true,
+              cliente: { select: { nome: true, documento: true, telefone: true } },
+              empresa: {
+                select: {
+                  nome: true,
+                  cnpj: true,
+                  enderecoLogradouro: true,
+                  enderecoNumero: true,
+                  enderecoBairro: true,
+                  enderecoCidade: true,
+                  enderecoUf: true,
+                  assinaturaRecibo: true,
+                  assinanteNome: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!pagamento) return res.status(404).json({ erro: "Pagamento não encontrado" });
+  if (pagamento.status !== "pago") {
+    return res.status(400).json({ erro: "Só é possível emitir recibo de pagamento recebido." });
+  }
+  res.json(pagamento);
+}

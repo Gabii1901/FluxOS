@@ -16,6 +16,8 @@ const SELECT_EMPRESA = {
   nome: true,
   cnpj: true,
   logoUrl: true,
+  assinaturaRecibo: true,
+  assinanteNome: true,
   plano: true,
   statusAssinatura: true,
   formaPagamento: true,
@@ -128,5 +130,35 @@ export async function removerLogo(req: Request, res: Response) {
     select: SELECT_EMPRESA,
   });
   apagarArquivoLogo(anterior.logoUrl);
+  res.json(empresa);
+}
+
+const assinaturaSchema = z.object({
+  imagem: z
+    .string()
+    .regex(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/, "Assinatura inválida")
+    .max(500_000, "Assinatura muito grande"),
+  nome: z.string().trim().min(1, "Informe o nome de quem assina"),
+});
+
+export async function salvarAssinatura(req: Request, res: Response) {
+  const resultado = assinaturaSchema.safeParse(req.body);
+  if (!resultado.success) {
+    return res.status(400).json({ erro: resultado.error.issues[0]?.message ?? "Dados inválidos" });
+  }
+  const empresa = await prisma.empresa.update({
+    where: { id: empresaIdDaRequisicao(req) },
+    data: { assinaturaRecibo: resultado.data.imagem, assinanteNome: resultado.data.nome },
+    select: SELECT_EMPRESA,
+  });
+  res.json(empresa);
+}
+
+export async function removerAssinatura(req: Request, res: Response) {
+  const empresa = await prisma.empresa.update({
+    where: { id: empresaIdDaRequisicao(req) },
+    data: { assinaturaRecibo: null, assinanteNome: null },
+    select: SELECT_EMPRESA,
+  });
   res.json(empresa);
 }

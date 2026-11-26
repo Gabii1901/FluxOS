@@ -14,3 +14,5 @@ empresaRoutes.get("/", asyncHandler(empresaController.buscar));
 empresaRoutes.patch("/", requireAdminOuDesenvolvedor, asyncHandler(empresaController.atualizar));
 empresaRoutes.post("/logo", requireAdminOuDesenvolvedor, uploadLogo.single("logo"), asyncHandler(empresaController.enviarLogo));
 empresaRoutes.delete("/logo", requireAdminOuDesenvolvedor, asyncHandler(empresaController.removerLogo));
+empresaRoutes.put("/assinatura", requireAdminOuDesenvolvedor, asyncHandler(empresaController.salvarAssinatura));
+empresaRoutes.delete("/assinatura", requireAdminOuDesenvolvedor, asyncHandler(empresaController.removerAssinatura));

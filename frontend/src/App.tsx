@@ -19,7 +19,9 @@ import { DadosEmpresaPage } from "./pages/DadosEmpresaPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { EscolherPlanoPage } from "./pages/EscolherPlanoPage";
 import { EstoquePage } from "./pages/EstoquePage";
+import { ImportarNotaPage } from "./pages/ImportarNotaPage";
 import { LoginPage } from "./pages/LoginPage";
+import { NotasEntradaPage } from "./pages/NotasEntradaPage";
 import { PagamentoRetornoPage } from "./pages/PagamentoRetornoPage";
 import { OrcamentoImpressaoPage } from "./pages/OrcamentoImpressaoPage";
 import { OrdemServicoDetalhePage } from "./pages/OrdemServicoDetalhePage";
@@ -29,6 +31,7 @@ import { OrcamentosPage } from "./pages/OrcamentosPage";
 import { PagamentosPendentesPage } from "./pages/PagamentosPendentesPage";
 import { PecaDetalhePage } from "./pages/PecaDetalhePage";
 import { PermissoesPage } from "./pages/PermissoesPage";
+import { ReciboImpressaoPage } from "./pages/ReciboImpressaoPage";
 import { UsuariosPage } from "./pages/UsuariosPage";
 
 function App() {
@@ -58,6 +61,14 @@ function App() {
                 element={
                   <RotaComPermissao modulo="orcamento_calhas">
                     <CalhaOrcamentoImpressaoPage />
+                  </RotaComPermissao>
+                }
+              />
+              <Route
+                path="/recibos/:id"
+                element={
+                  <RotaComPermissao modulo="financeiro">
+                    <ReciboImpressaoPage />
                   </RotaComPermissao>
                 }
               />
@@ -156,6 +167,22 @@ function App() {
                   element={
                     <RotaComPermissao modulo="estoque">
                       <EstoquePage />
+                    </RotaComPermissao>
+                  }
+                />
+                <Route
+                  path="/estoque/notas"
+                  element={
+                    <RotaComPermissao modulo="estoque">
+                      <NotasEntradaPage />
+                    </RotaComPermissao>
+                  }
+                />
+                <Route
+                  path="/estoque/notas/importar"
+                  element={
+                    <RotaComPermissao modulo="estoque">
+                      <ImportarNotaPage />
                     </RotaComPermissao>
                   }
                 />

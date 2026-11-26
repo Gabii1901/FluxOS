@@ -741,8 +741,19 @@ export function OrdemServicoDetalhePage() {
                               <> · vence em {formatarData(pagamento.vencimento)}</>
                             )}
                           </span>
-                          <span className="font-medium text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
-                            {formatarMoeda(Number(pagamento.valor))}
+                          <span className="flex items-center gap-3">
+                            {pagamento.status === "pago" && (
+                              <Link
+                                to={`/recibos/${pagamento.id}`}
+                                target="_blank"
+                                className="text-xs font-medium text-slate-600 hover:underline"
+                              >
+                                Recibo
+                              </Link>
+                            )}
+                            <span className="font-medium text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+                              {formatarMoeda(Number(pagamento.valor))}
+                            </span>
                           </span>
                         </div>
 

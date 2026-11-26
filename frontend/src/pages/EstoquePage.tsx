@@ -100,6 +100,13 @@ export function EstoquePage() {
           <h1 className="text-2xl font-semibold text-slate-900">Estoque</h1>
           <p className="mt-1 text-sm text-slate-500">Peças cadastradas e controle de entrada/saída.</p>
         </div>
+        <div className="flex items-center gap-2">
+        <button
+          onClick={() => navigate("/estoque/notas")}
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          Notas de entrada (XML)
+        </button>
         {podeCriar && (
           <button
             onClick={() => setMostrarForm((valor) => !valor)}
@@ -112,6 +119,7 @@ export function EstoquePage() {
             {mostrarForm ? "Cancelar" : "Nova peça"}
           </button>
         )}
+        </div>
       </header>
 
       {mostrarForm && podeCriar && (
@@ -245,7 +253,7 @@ export function EstoquePage() {
                       }`}
                       style={{ fontVariantNumeric: "tabular-nums" }}
                     >
-                      {Number(peca.quantidadeEstoque)}
+                      {Number(peca.quantidadeEstoque)} {peca.unidade}
                     </span>
                   </td>
                   <td className="px-4 py-3">

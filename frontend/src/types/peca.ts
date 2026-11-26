@@ -4,6 +4,8 @@ export interface Peca {
   nome: string;
   quantidadeEstoque: string;
   valorUnitario: string;
+  unidade: string;
+  precoCusto: string;
   ativo: boolean;
 }
 

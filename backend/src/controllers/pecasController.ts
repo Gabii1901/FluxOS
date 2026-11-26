@@ -7,6 +7,7 @@ const criarPecaSchema = z.object({
   sku: z.string().min(1),
   nome: z.string().min(1),
   valorUnitario: z.number().nonnegative().default(0),
+  unidade: z.string().min(1).default("UN"),
   quantidadeInicial: z.number().nonnegative().default(0),
 });
 
@@ -56,6 +57,7 @@ export async function criar(req: Request, res: Response) {
         sku: dados.sku,
         nome: dados.nome,
         valorUnitario: dados.valorUnitario,
+        unidade: dados.unidade,
         quantidadeEstoque: dados.quantidadeInicial,
       },
     });
@@ -82,6 +84,7 @@ const atualizarPecaSchema = z.object({
   sku: z.string().min(1).optional(),
   nome: z.string().min(1).optional(),
   valorUnitario: z.number().nonnegative().optional(),
+  unidade: z.string().min(1).optional(),
   ativo: z.boolean().optional(),
 });
 

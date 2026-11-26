@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
+import { QuadroAssinatura } from "../components/QuadroAssinatura";
 import { UsuariosComAcesso } from "../components/UsuariosComAcesso";
 import { useAuth } from "../contexts/AuthContext";
 import { api, urlArquivo } from "../lib/api";
@@ -278,6 +279,8 @@ export function DadosEmpresaPage() {
         </div>
       </section>
 
+      {!modoAdmin && <SecaoAssinatura empresa={empresa} onAtualizada={setEmpresa} />}
+
       <form onSubmit={handleSalvar} className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 text-sm font-semibold text-slate-900">Dados da empresa</h2>
 
@@ -399,5 +402,109 @@ export function DadosEmpresaPage() {
 
       {modoAdmin && empresaId && <UsuariosComAcesso empresaId={empresaId} />}
     </div>
+  );
+}
+
+function SecaoAssinatura({
+  empresa,
+  onAtualizada,
+}: {
+  empresa: DadosEmpresa;
+  onAtualizada: (empresa: DadosEmpresa) => void;
+}) {
+  const [editando, setEditando] = useState(false);
+  const [imagem, setImagem] = useState<string | null>(null);
+  const [nome, setNome] = useState(empresa.assinanteNome ?? "");
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function salvar() {
+    if (!imagem) return setErro("Desenhe a assinatura.");
+    if (!nome.trim()) return setErro("Informe o nome de quem assina.");
+    setErro(null);
+    setSalvando(true);
+    try {
+      const { data } = await api.put<DadosEmpresa>("/empresa/assinatura", { imagem, nome });
+      onAtualizada(data);
+      setEditando(false);
+      setImagem(null);
+    } catch (e: any) {
+      setErro(e?.response?.data?.erro ?? "Não foi possível salvar a assinatura.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function remover() {
+    if (!window.confirm("Remover a assinatura? Os recibos passam a sair sem assinatura.")) return;
+    const { data } = await api.delete<DadosEmpresa>("/empresa/assinatura");
+    onAtualizada(data);
+  }
+
+  return (
+    <section className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
+      <h2 className="mb-1 text-sm font-semibold text-slate-900">Assinatura dos recibos</h2>
+      <p className="mb-4 text-xs text-slate-500">
+        Desenhe uma vez com o mouse ou o dedo — todo recibo de pagamento já sai assinado.
+      </p>
+
+      {!editando && (
+        <div className="flex flex-wrap items-center gap-5">
+          <div className="flex h-24 w-64 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-2">
+            {empresa.assinaturaRecibo ? (
+              <img src={empresa.assinaturaRecibo} alt="Assinatura" className="max-h-full max-w-full object-contain" />
+            ) : (
+              <span className="text-xs text-slate-400">Sem assinatura</span>
+            )}
+          </div>
+          <div className="flex flex-col items-start gap-2">
+            {empresa.assinanteNome && <p className="text-sm text-slate-700">{empresa.assinanteNome}</p>}
+            <button
+              type="button"
+              onClick={() => setEditando(true)}
+              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            >
+              {empresa.assinaturaRecibo ? "Gravar nova assinatura" : "Gravar assinatura"}
+            </button>
+            {empresa.assinaturaRecibo && (
+              <button type="button" onClick={remover} className="text-xs font-medium text-red-700 hover:underline">
+                Remover assinatura
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {editando && (
+        <div className="max-w-lg space-y-3">
+          <QuadroAssinatura onChange={setImagem} />
+          <div>
+            <label className={rotulo}>Nome de quem assina *</label>
+            <input value={nome} onChange={(e) => setNome(e.target.value)} className={campo} placeholder="ex: Maria Souza" />
+          </div>
+          {erro && <p className="text-xs text-red-600">{erro}</p>}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={salvar}
+              disabled={salvando}
+              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60"
+            >
+              {salvando ? "Salvando..." : "Salvar assinatura"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditando(false);
+                setErro(null);
+              }}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
