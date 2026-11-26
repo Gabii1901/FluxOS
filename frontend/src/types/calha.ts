@@ -86,6 +86,7 @@ export interface OrcamentoCalhaItem {
   perfilId: string | null;
   perfil: PerfilCalha | null;
   segmentosCustom: SegmentoPerfil[] | null;
+  croqui: string | null;
   valorUnitario: string | null;
   acrescimoPercentual: string;
   custoCalculado: string;

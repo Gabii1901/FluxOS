@@ -690,6 +690,8 @@ model OrcamentoCalhaItem {
   materialId        String?             @map("material_id")
   perfilId          String?             @map("perfil_id")
   segmentosCustom   Json?               @map("segmentos_custom")
+  // Croqui desenhado à mão (caimento, peça fora do padrão...) — PNG em data URL.
+  croqui            String?
   valorUnitario     Decimal?            @map("valor_unitario") @db.Decimal(10, 2) // venda/adicional
   acrescimoPercentual Decimal           @default(30) @map("acrescimo_percentual") @db.Decimal(6, 2)
   custoCalculado    Decimal             @default(0) @map("custo_calculado") @db.Decimal(12, 2)

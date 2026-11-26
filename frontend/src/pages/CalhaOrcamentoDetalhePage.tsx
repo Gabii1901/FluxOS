@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CampoMoeda } from "../components/CampoMoeda";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { PerfilCalhaEditor } from "../components/PerfilCalhaEditor";
+import { QuadroCroqui } from "../components/QuadroCroqui";
 import { api } from "../lib/api";
 import { descartarOrcamentoCalhaSeVazio } from "../lib/descarteOrcamentoCalha";
 import {
@@ -45,6 +46,7 @@ export function CalhaOrcamentoDetalhePage() {
   const navigate = useNavigate();
 
   const [orcamento, setOrcamento] = useState<OrcamentoCalha | null>(null);
+  const [croquiItemId, setCroquiItemId] = useState<string | null>(null);
   const [materiais, setMateriais] = useState<MaterialChapa[]>([]);
   const [perfis, setPerfis] = useState<PerfilCalha[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -127,6 +129,16 @@ export function CalhaOrcamentoDetalhePage() {
     if (!window.confirm("Remover esse item do orçamento?")) return;
     await api.delete(`/calhas/orcamentos/${id}/itens/${itemId}`);
     recarregar();
+  }
+
+  async function handleSalvarCroqui(itemId: string, croqui: string | null) {
+    try {
+      await api.put(`/calhas/orcamentos/${id}/itens/${itemId}/croqui`, { croqui });
+      setCroquiItemId(null);
+      recarregar();
+    } catch (e: any) {
+      window.alert(e?.response?.data?.erro ?? "Não foi possível salvar o croqui.");
+    }
   }
 
   async function handleRemoverMaoDeObra(maoDeObraId: string) {
@@ -314,9 +326,21 @@ export function CalhaOrcamentoDetalhePage() {
                     <td className="px-4 py-3 text-slate-600">{formatarMoeda(Number(item.custoCalculado))}</td>
                     <td className="px-4 py-3 font-medium text-slate-900">{formatarMoeda(Number(item.precoCalculado))}</td>
                     <td className="px-4 py-3 text-right">
-                      <button type="button" onClick={() => handleRemoverItem(item.id)} className="text-xs font-medium text-red-700 hover:underline">
-                        Remover
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        {item.croqui && (
+                          <img src={item.croqui} alt="Croqui" className="h-8 w-12 rounded border border-slate-200 object-cover" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setCroquiItemId(item.id)}
+                          className="whitespace-nowrap text-xs font-medium text-slate-600 hover:underline"
+                        >
+                          {item.croqui ? "Editar croqui" : "Croqui"}
+                        </button>
+                        <button type="button" onClick={() => handleRemoverItem(item.id)} className="text-xs font-medium text-red-700 hover:underline">
+                          Remover
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -325,6 +349,15 @@ export function CalhaOrcamentoDetalhePage() {
           </div>
         )}
       </section>
+
+      {croquiItemId && orcamento && (
+        <QuadroCroqui
+          titulo="Croqui do item"
+          imagemInicial={orcamento.itens.find((i) => i.id === croquiItemId)?.croqui}
+          onFechar={() => setCroquiItemId(null)}
+          onSalvar={(imagem) => handleSalvarCroqui(croquiItemId, imagem)}
+        />
+      )}
 
       {/* Mão de obra */}
       <section className="mb-8">
@@ -414,6 +447,8 @@ function ItemForm({
   const [perfilId, setPerfilId] = useState("");
   const [segmentosCustom, setSegmentosCustom] = useState<SegmentoPerfil[] | null>(null);
   const [editorAberto, setEditorAberto] = useState(false);
+  const [croqui, setCroqui] = useState<string | null>(null);
+  const [croquiAberto, setCroquiAberto] = useState(false);
   const [valorUnitario, setValorUnitario] = useState("");
   const [acrescimoPercentual, setAcrescimoPercentual] = useState(acrescimoPadrao);
   const [enviando, setEnviando] = useState(false);
@@ -467,6 +502,7 @@ function ItemForm({
         perfilId: ehMetal && perfilId ? perfilId : undefined,
         valorUnitario: !ehMetal ? Number(valorUnitario.replace(",", ".")) || 0 : undefined,
         segmentosCustom: ehMetal && segmentosCustom ? segmentosCustom : undefined,
+        croqui: croqui ?? undefined,
         acrescimoPercentual,
       });
       onAdicionado();
@@ -609,6 +645,36 @@ function ItemForm({
             setSegmentosCustom(segmentos);
             aplicarCorteDoFormato(segmentos);
             setEditorAberto(false);
+          }}
+        />
+      )}
+
+      <div className="mb-4">
+        <label className={rotulo}>Croqui (caimento, fora do padrão)</label>
+        <div className="flex items-center gap-3">
+          {croqui && <img src={croqui} alt="Croqui" className="h-14 w-24 rounded border border-slate-200 object-cover" />}
+          <button
+            type="button"
+            onClick={() => setCroquiAberto(true)}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:border-slate-900"
+          >
+            {croqui ? "Editar croqui" : "Desenhar croqui"}
+          </button>
+          {croqui && (
+            <button type="button" onClick={() => setCroqui(null)} className="text-xs font-medium text-red-700 hover:underline">
+              Remover
+            </button>
+          )}
+        </div>
+      </div>
+
+      {croquiAberto && (
+        <QuadroCroqui
+          imagemInicial={croqui}
+          onFechar={() => setCroquiAberto(false)}
+          onSalvar={(imagem) => {
+            setCroqui(imagem);
+            setCroquiAberto(false);
           }}
         />
       )}

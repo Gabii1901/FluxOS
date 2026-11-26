@@ -310,6 +310,12 @@ export async function descartarOrcamentoVazio(req: Request, res: Response) {
 // Itens do orçamento
 // ============================================================
 
+const croquiSchema = z
+  .string()
+  .regex(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/, "Croqui inválido")
+  .max(900_000, "Croqui muito grande")
+  .nullable();
+
 const itemSchema = z.object({
   tipoServico: z.enum(TIPOS_SERVICO),
   descricao: z.string().optional(),
@@ -321,6 +327,7 @@ const itemSchema = z.object({
   materialId: z.string().optional(),
   perfilId: z.string().optional(),
   segmentosCustom: z.array(segmentoSchema).optional(),
+  croqui: z.lazy(() => croquiSchema).optional(),
   valorUnitario: z.number().nonnegative().optional(),
   acrescimoPercentual: z.number().min(0).max(1000).default(30),
 });
@@ -470,4 +477,22 @@ export async function removerMaoDeObra(req: Request, res: Response) {
   });
 
   res.status(204).send();
+}
+
+/** Salva (ou remove, com null) o croqui desenhado à mão de um item. */
+export async function salvarCroquiItem(req: Request, res: Response) {
+  const { id: orcamentoId, itemId } = req.params;
+  const { croqui } = z.object({ croqui: croquiSchema }).parse(req.body);
+
+  const item = await prisma.orcamentoCalhaItem.findFirst({
+    where: { id: itemId, orcamentoId, orcamento: { empresaId: req.usuario!.empresaId } },
+  });
+  if (!item) return res.status(404).json({ erro: "Item não encontrado" });
+
+  const atualizado = await prisma.orcamentoCalhaItem.update({
+    where: { id: itemId },
+    data: { croqui },
+    include: { material: true, perfil: true },
+  });
+  res.json(atualizado);
 }

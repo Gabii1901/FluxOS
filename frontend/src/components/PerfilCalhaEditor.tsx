@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import type { SegmentoPerfil } from "../types/calha";
 import { PerfilCalhaDesenho } from "./PerfilCalhaDesenho";
+import { PerfilMaoLivre } from "./PerfilMaoLivre";
 
 const DIRECOES: { graus: number; seta: string }[] = [
   { graus: 0, seta: "→" },
@@ -31,6 +32,7 @@ export function PerfilCalhaEditor({
       : [{ nome: "Segmento 1", valorCm: 10, anguloGraus: 90 }],
   );
   const [salvando, setSalvando] = useState(false);
+  const [maoLivre, setMaoLivre] = useState(segmentosIniciais.length === 0);
 
   const totalCm = segmentos.reduce((soma, s) => soma + s.valorCm, 0);
 
@@ -62,7 +64,7 @@ export function PerfilCalhaEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 py-8">
-      <div className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="flex max-h-full w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
             <p className="text-sm font-semibold text-slate-900">Formato</p>
@@ -72,9 +74,32 @@ export function PerfilCalhaEditor({
         </div>
 
         <div className="overflow-y-auto px-5 py-4">
-          <div className="mb-4 flex items-center justify-center rounded-lg border border-slate-100 bg-slate-50 py-4">
-            <PerfilCalhaDesenho segmentos={segmentos} />
+          <div className="mb-3 grid grid-cols-2 rounded-lg bg-slate-100 p-1 text-sm">
+            {[
+              { valor: true, label: "Desenhar à mão" },
+              { valor: false, label: "Ver formato" },
+            ].map((aba) => (
+              <button
+                key={aba.label}
+                type="button"
+                onClick={() => setMaoLivre(aba.valor)}
+                className={`rounded-md py-1.5 font-medium ${
+                  maoLivre === aba.valor ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {aba.label}
+              </button>
+            ))}
           </div>
+          {maoLivre ? (
+            <div className="mb-4">
+              <PerfilMaoLivre onSegmentos={setSegmentos} />
+            </div>
+          ) : (
+            <div className="mb-4 flex items-center justify-center rounded-lg border border-slate-100 bg-slate-50 py-4">
+              <PerfilCalhaDesenho segmentos={segmentos} />
+            </div>
+          )}
 
           <div className="mb-4 flex items-center justify-between">
             <p className="text-sm font-medium text-slate-700">Medidas dos segmentos</p>

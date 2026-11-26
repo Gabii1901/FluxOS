@@ -20,6 +20,7 @@ interface ModeloOrcamento {
   mostrarMedidas: boolean;
   mostrarMaterial: boolean;
   mostrarDesenhos: boolean;
+  mostrarCroquis: boolean;
   mostrarMaoDeObra: boolean;
   mostrarAssinaturaCliente: boolean;
   apresentacao: string;
@@ -36,6 +37,7 @@ const MODELO_PADRAO: ModeloOrcamento = {
   mostrarMedidas: true,
   mostrarMaterial: true,
   mostrarDesenhos: true,
+  mostrarCroquis: true,
   mostrarMaoDeObra: true,
   mostrarAssinaturaCliente: true,
   apresentacao: "",
@@ -123,6 +125,7 @@ export function CalhaOrcamentoImpressaoPage() {
       resumido,
       mostrarValoresItens: !resumido,
       mostrarDesenhos: !resumido,
+      mostrarCroquis: !resumido,
       mostrarMaoDeObra: !resumido,
       mostrarMaterial: !resumido,
       mostrarMedidas: true,
@@ -198,6 +201,9 @@ export function CalhaOrcamentoImpressaoPage() {
           </Opcao>
           <Opcao checked={modelo.mostrarDesenhos} onChange={(v) => alterar("mostrarDesenhos", v)}>
             Desenho das peças
+          </Opcao>
+          <Opcao checked={modelo.mostrarCroquis} onChange={(v) => alterar("mostrarCroquis", v)}>
+            Croquis (caimento, fora do padrão)
           </Opcao>
           <Opcao checked={modelo.mostrarAssinaturaCliente} onChange={(v) => alterar("mostrarAssinaturaCliente", v)}>
             Campo de assinatura do cliente
@@ -424,6 +430,26 @@ export function CalhaOrcamentoImpressaoPage() {
                     </p>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {modelo.mostrarCroquis && orcamento.itens.some((i) => i.croqui) && (
+            <section className="mb-6">
+              <p className="mb-2 text-xs text-slate-400">Croquis</p>
+              <div className="space-y-4">
+                {orcamento.itens
+                  .filter((i) => i.croqui)
+                  .map((item) => (
+                    <div key={item.id} className="break-inside-avoid rounded-lg border border-slate-200 p-3">
+                      <p className="mb-2 text-sm font-medium">
+                        {nomeServico(item)}
+                        {item.perfil ? ` · ${item.perfil.nome}` : ""}
+                        {item.descricao ? ` · ${item.descricao}` : ""}
+                      </p>
+                      <img src={item.croqui!} alt={`Croqui de ${nomeServico(item)}`} className="w-full" />
+                    </div>
+                  ))}
               </div>
             </section>
           )}

@@ -171,6 +171,7 @@ const modeloOrcamentoSchema = z.object({
   mostrarMedidas: z.boolean(),
   mostrarMaterial: z.boolean(),
   mostrarDesenhos: z.boolean(),
+  mostrarCroquis: z.boolean().default(true),
   mostrarMaoDeObra: z.boolean(),
   mostrarAssinaturaCliente: z.boolean(),
   apresentacao: z.string().max(2000),
