@@ -63,11 +63,16 @@ export function QuadroCroqui({
   onSalvar,
   onFechar,
   titulo = "Croqui",
+  embutido = false,
+  onChange,
 }: {
   imagemInicial?: string | null;
-  onSalvar: (imagem: string | null) => void;
-  onFechar: () => void;
+  onSalvar?: (imagem: string | null) => void;
+  onFechar?: () => void;
   titulo?: string;
+  /** Sem janela própria: para usar dentro de outra tela; avisa cada mudança por onChange. */
+  embutido?: boolean;
+  onChange?: (imagem: string | null) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fundoRef = useRef<HTMLImageElement | null>(null);
@@ -137,8 +142,8 @@ export function QuadroCroqui({
     setTemFundo(false);
   }
 
-  function salvar() {
-    if (tracos.length === 0 && !temFundo) return onSalvar(null);
+  function exportar() {
+    if (tracos.length === 0 && !temFundo) return null;
     const saida = document.createElement("canvas");
     saida.width = LARGURA;
     saida.height = ALTURA;
@@ -146,25 +151,29 @@ export function QuadroCroqui({
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, LARGURA, ALTURA);
     ctx.drawImage(canvasRef.current!, 0, 0);
-    onSalvar(saida.toDataURL("image/png"));
+    return saida.toDataURL("image/png");
   }
+
+  function salvar() {
+    onSalvar?.(exportar());
+  }
+
+  // No modo embutido, entrega o desenho atualizado a cada traço (não durante o traço).
+  const primeiraRenderizacao = useRef(true);
+  useEffect(() => {
+    if (!embutido) return;
+    if (primeiraRenderizacao.current) {
+      primeiraRenderizacao.current = false;
+      return;
+    }
+    onChange?.(exportar());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tracos, temFundo]);
 
   const botao = (ativo: boolean) =>
     `rounded-md px-3 py-1.5 text-sm font-medium ${ativo ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-6">
-      <div className="flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
-          <div>
-            <p className="text-sm font-semibold text-slate-900">{titulo}</p>
-            <p className="text-xs text-slate-500">Desenhe o caimento, peças fora do padrão ou qualquer detalhe.</p>
-          </div>
-          <button type="button" onClick={onFechar} className="text-slate-400 hover:text-slate-900" aria-label="Fechar">
-            ✕
-          </button>
-        </div>
-
+  const barra = (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-100 px-5 py-2">
           <div className="flex gap-1">
             {FERRAMENTAS.map((f) => (
@@ -209,7 +218,9 @@ export function QuadroCroqui({
             </button>
           </div>
         </div>
+  );
 
+  const quadro = (
         <div className="overflow-auto bg-slate-50 p-3 sm:p-5">
           <canvas
             ref={canvasRef}
@@ -228,7 +239,32 @@ export function QuadroCroqui({
             }}
           />
         </div>
+  );
 
+  if (embutido) {
+    return (
+      <div className="overflow-hidden rounded-lg border border-slate-200">
+        {barra}
+        {quadro}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-6">
+      <div className="flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">{titulo}</p>
+            <p className="text-xs text-slate-500">Desenhe o caimento, peças fora do padrão ou qualquer detalhe.</p>
+          </div>
+          <button type="button" onClick={onFechar} className="text-slate-400 hover:text-slate-900" aria-label="Fechar">
+            ✕
+          </button>
+        </div>
+
+        {barra}
+        {quadro}
         <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-3">
           <button type="button" onClick={onFechar} className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
             Cancelar

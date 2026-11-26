@@ -632,6 +632,15 @@ function ItemForm({
                 Formato personalizado — {segmentosCustom.length} segmentos, total {totalSegmentosCustom?.toFixed(1)}cm
               </p>
             )}
+            {croqui && (
+              <div className="mt-2 flex items-center gap-3">
+                <img src={croqui} alt="Croqui" className="h-12 w-20 rounded border border-slate-200 object-cover" />
+                <span className="text-xs text-slate-600">Croqui anexado</span>
+                <button type="button" onClick={() => setCroqui(null)} className="text-xs font-medium text-red-700 hover:underline">
+                  Remover
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -640,15 +649,20 @@ function ItemForm({
         <PerfilCalhaEditor
           segmentosIniciais={segmentosCustom ?? perfilSelecionado?.segmentos ?? []}
           nomeInicial={perfilSelecionado?.nome}
+          croquiInicial={croqui}
           onFechar={() => setEditorAberto(false)}
-          onUsar={(segmentos) => {
-            setSegmentosCustom(segmentos);
-            aplicarCorteDoFormato(segmentos);
+          onUsar={(segmentos, novoCroqui) => {
+            if (segmentos && segmentos.length > 0) {
+              setSegmentosCustom(segmentos);
+              aplicarCorteDoFormato(segmentos);
+            }
+            setCroqui(novoCroqui);
             setEditorAberto(false);
           }}
         />
       )}
 
+      {!ehMetal && (
       <div className="mb-4">
         <label className={rotulo}>Croqui (caimento, fora do padrão)</label>
         <div className="flex items-center gap-3">
@@ -667,6 +681,7 @@ function ItemForm({
           )}
         </div>
       </div>
+      )}
 
       {croquiAberto && (
         <QuadroCroqui
