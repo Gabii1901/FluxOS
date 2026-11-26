@@ -90,27 +90,79 @@ export function DashboardPage() {
     const texto = new Date(ano, m - 1, 1).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
     return `${texto.charAt(0).toUpperCase()}${texto.slice(1)}/${String(ano).slice(2)}`;
   };
+  const totalMes = (m: MesRelatorio) => m.despesaPaga + m.despesaEmAberto;
+  const mesAnterior = despesasMensais?.[despesasMensais.length - 2];
+  const nomeMesLongo = (mes: string) =>
+    new Date(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)) - 1, 1).toLocaleDateString("pt-BR", { month: "long" });
+  const comparacao = (() => {
+    if (!mesAtual || !mesAnterior) return null;
+    const anterior = totalMes(mesAnterior);
+    if (anterior === 0) return `Nenhuma despesa em ${nomeMesLongo(mesAnterior.mes)}`;
+    const diferenca = totalMes(mesAtual) - anterior;
+    if (Math.abs(diferenca) < 0.01) return `Igual a ${nomeMesLongo(mesAnterior.mes)}`;
+    return `${moeda(Math.abs(diferenca))} ${diferenca > 0 ? "a mais" : "a menos"} que ${nomeMesLongo(mesAnterior.mes)}`;
+  })();
+  const maiorMes = Math.max(1, ...(despesasMensais ?? []).map(totalMes));
+
   const cartaoDespesasMensais = podeVerFinanceiro && despesasMensais && mesAtual && (
-    <div className="mb-6 rounded-xl border border-slate-200 border-l-4 border-l-red-400 bg-white p-5">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Despesas deste mês</p>
-          <p className="mt-2 text-2xl font-semibold text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
-            {moeda(mesAtual.despesaPaga + mesAtual.despesaEmAberto)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500" style={{ fontVariantNumeric: "tabular-nums" }}>
-            {moeda(mesAtual.despesaPaga)} pago · {moeda(mesAtual.despesaEmAberto)} em aberto
-          </p>
-        </div>
+    <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
+      <div className="mb-5 flex items-baseline justify-between gap-4">
+        <h2 className="text-sm font-semibold text-slate-900">Despesas de {nomeMesLongo(mesAtual.mes)}</h2>
         <Link to="/relatorios" className="text-xs font-medium text-slate-500 hover:text-slate-900">
-          Ver relatórios →
+          Ver relatórios
         </Link>
       </div>
-      <p className="mb-2 text-xs font-medium text-slate-500">Últimos 6 meses</p>
-      <BarChart
-        data={despesasMensais.map((m) => ({ id: m.mes, label: nomeMes(m.mes), value: m.despesaPaga + m.despesaEmAberto }))}
-        ariaLabel="Despesas por mês nos últimos 6 meses"
-      />
+
+      <div className="grid grid-cols-1 items-end gap-8 sm:grid-cols-[1fr_auto]">
+        <div>
+          <p className="text-3xl font-semibold text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+            {moeda(totalMes(mesAtual))}
+          </p>
+          {comparacao && <p className="mt-1 text-sm text-slate-500">{comparacao}</p>}
+
+          {totalMes(mesAtual) > 0 && (
+            <div className="mt-5 max-w-sm">
+              <div className="flex h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="bg-emerald-500"
+                  style={{ width: `${(mesAtual.despesaPaga / totalMes(mesAtual)) * 100}%` }}
+                />
+                <div className="bg-amber-400" style={{ width: `${(mesAtual.despesaEmAberto / totalMes(mesAtual)) * 100}%` }} />
+              </div>
+              <div className="mt-2 flex gap-5 text-xs text-slate-600" style={{ fontVariantNumeric: "tabular-nums" }}>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  Pago {moeda(mesAtual.despesaPaga)}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-400" />
+                  Em aberto {moeda(mesAtual.despesaEmAberto)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div role="img" aria-label="Despesas por mês nos últimos 6 meses" className="flex items-end gap-2.5">
+          {despesasMensais.map((m) => {
+            const atual = m.mes === mesAtual.mes;
+            const altura = totalMes(m) > 0 ? Math.max(6, (totalMes(m) / maiorMes) * 80) : 3;
+            return (
+              <div key={m.mes} className="flex w-9 flex-col items-center gap-1.5" title={`${nomeMes(m.mes)}: ${moeda(totalMes(m))}`}>
+                <div className="flex h-20 w-full items-end">
+                  <div
+                    className={`w-full rounded-t ${atual ? "bg-slate-900" : totalMes(m) > 0 ? "bg-slate-300" : "bg-slate-200"}`}
+                    style={{ height: altura }}
+                  />
+                </div>
+                <span className={`text-[11px] ${atual ? "font-semibold text-slate-900" : "text-slate-400"}`}>
+                  {nomeMes(m.mes).split("/")[0]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
   const cartaoContasPagar = podeVerFinanceiro && contasPagar && (
