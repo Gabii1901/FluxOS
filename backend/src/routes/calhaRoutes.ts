@@ -37,3 +37,5 @@ calhaRoutes.delete("/orcamentos/:id/itens/:itemId", editar, asyncHandler(calhaCo
 
 calhaRoutes.post("/orcamentos/:id/mao-de-obra", editar, asyncHandler(calhaController.adicionarMaoDeObra));
 calhaRoutes.delete("/orcamentos/:id/mao-de-obra/:maoDeObraId", editar, asyncHandler(calhaController.removerMaoDeObra));
+calhaRoutes.post("/orcamentos/:id/despesas", editar, asyncHandler(calhaController.adicionarDespesa));
+calhaRoutes.delete("/orcamentos/:id/despesas/:despesaId", editar, asyncHandler(calhaController.removerDespesa));

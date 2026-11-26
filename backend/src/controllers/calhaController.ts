@@ -146,17 +146,20 @@ const orcamentoInclude = {
   os: { select: { id: true, numero: true, problemaRelatado: true } },
   itens: { include: { material: true, perfil: true }, orderBy: { criadoEm: "asc" } },
   maoDeObra: { include: { usuario: { select: { id: true, nome: true } } }, orderBy: { criadoEm: "asc" } },
+  despesas: { orderBy: { criadoEm: "asc" } },
 } satisfies Prisma.OrcamentoCalhaInclude;
 
 async function recalcularEAtualizarOrcamento(tx: Prisma.TransactionClient, orcamentoId: string) {
-  const [itens, maoDeObra] = await Promise.all([
+  const [itens, maoDeObra, despesas] = await Promise.all([
     tx.orcamentoCalhaItem.findMany({ where: { orcamentoId } }),
     tx.orcamentoCalhaMaoDeObra.findMany({ where: { orcamentoId } }),
+    tx.orcamentoCalhaDespesa.findMany({ where: { orcamentoId } }),
   ]);
 
   const totais = recalcularTotais(
     itens.map((i) => ({ custoCalculado: Number(i.custoCalculado), precoCalculado: Number(i.precoCalculado) })),
     maoDeObra.map((m) => ({ custoTotal: Number(m.custoTotal) })),
+    despesas.map((d) => ({ valor: Number(d.valor) })),
   );
 
   await tx.orcamentoCalha.update({
@@ -296,10 +299,10 @@ export async function apagarOrcamento(req: Request, res: Response) {
 export async function descartarOrcamentoVazio(req: Request, res: Response) {
   const orcamento = await prisma.orcamentoCalha.findFirst({
     where: { id: req.params.id, empresaId: req.usuario!.empresaId },
-    include: { _count: { select: { itens: true, maoDeObra: true } } },
+    include: { _count: { select: { itens: true, maoDeObra: true, despesas: true } } },
   });
   if (!orcamento) return res.status(204).send();
-  if (orcamento.status !== "rascunho" || orcamento._count.itens > 0 || orcamento._count.maoDeObra > 0) {
+  if (orcamento.status !== "rascunho" || orcamento._count.itens > 0 || orcamento._count.maoDeObra > 0 || orcamento._count.despesas > 0) {
     return res.json({ descartado: false });
   }
   await prisma.orcamentoCalha.delete({ where: { id: orcamento.id } });
@@ -495,4 +498,50 @@ export async function salvarCroquiItem(req: Request, res: Response) {
     include: { material: true, perfil: true },
   });
   res.json(atualizado);
+}
+
+// ============================================================
+// Outras despesas
+// ============================================================
+
+const despesaSchema = z.object({
+  descricao: z.string().trim().min(1, "Informe a descrição da despesa"),
+  valor: z.number().positive("Informe o valor da despesa"),
+});
+
+export async function adicionarDespesa(req: Request, res: Response) {
+  const { id: orcamentoId } = req.params;
+  const resultado = despesaSchema.safeParse(req.body);
+  if (!resultado.success) {
+    return res.status(400).json({ erro: resultado.error.issues[0]?.message ?? "Dados inválidos" });
+  }
+
+  const orcamento = await prisma.orcamentoCalha.findFirst({
+    where: { id: orcamentoId, empresaId: req.usuario!.empresaId },
+  });
+  if (!orcamento) return res.status(404).json({ erro: "Orçamento não encontrado" });
+
+  const despesa = await prisma.$transaction(async (tx) => {
+    const nova = await tx.orcamentoCalhaDespesa.create({ data: { ...resultado.data, orcamentoId } });
+    await recalcularEAtualizarOrcamento(tx, orcamentoId);
+    return nova;
+  });
+
+  res.status(201).json(despesa);
+}
+
+export async function removerDespesa(req: Request, res: Response) {
+  const { id: orcamentoId, despesaId } = req.params;
+
+  const despesa = await prisma.orcamentoCalhaDespesa.findFirst({
+    where: { id: despesaId, orcamentoId, orcamento: { empresaId: req.usuario!.empresaId } },
+  });
+  if (!despesa) return res.status(404).json({ erro: "Despesa não encontrada" });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.orcamentoCalhaDespesa.delete({ where: { id: despesaId } });
+    await recalcularEAtualizarOrcamento(tx, orcamentoId);
+  });
+
+  res.status(204).send();
 }

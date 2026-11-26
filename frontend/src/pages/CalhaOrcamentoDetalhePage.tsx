@@ -141,6 +141,12 @@ export function CalhaOrcamentoDetalhePage() {
     }
   }
 
+  async function handleRemoverDespesa(despesaId: string) {
+    if (!window.confirm("Remover essa despesa do orçamento?")) return;
+    await api.delete(`/calhas/orcamentos/${id}/despesas/${despesaId}`);
+    recarregar();
+  }
+
   async function handleRemoverMaoDeObra(maoDeObraId: string) {
     if (!window.confirm("Remover essa mão de obra do orçamento?")) return;
     await api.delete(`/calhas/orcamentos/${id}/mao-de-obra/${maoDeObraId}`);
@@ -391,6 +397,46 @@ export function CalhaOrcamentoDetalhePage() {
                   </tr>
                 ))}
               </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Outras despesas */}
+      <section className="mb-8">
+        <h2 className="mb-1 text-lg font-semibold text-slate-900">Outras despesas</h2>
+        <p className="mb-3 text-sm text-slate-500">
+          Deslocamento, combustível, alimentação, andaime, frete… Entram no total pelo valor informado, sem margem.
+        </p>
+        <DespesaForm orcamentoId={orcamento.id} onAdicionado={recarregar} />
+
+        {orcamento.despesas.length > 0 && (
+          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <table className="w-full text-left text-sm">
+              <tbody className="divide-y divide-slate-100">
+                {orcamento.despesas.map((d) => (
+                  <tr key={d.id}>
+                    <td className="px-4 py-3 font-medium text-slate-900">{d.descricao}</td>
+                    <td className="px-4 py-3 text-right font-medium text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatarMoeda(Number(d.valor))}
+                    </td>
+                    <td className="w-24 px-4 py-3 text-right">
+                      <button type="button" onClick={() => handleRemoverDespesa(d.id)} className="text-xs font-medium text-red-700 hover:underline">
+                        Remover
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="border-t border-slate-200 bg-slate-50">
+                <tr>
+                  <td className="px-4 py-2.5 text-sm text-slate-600">Total de despesas</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+                    {formatarMoeda(orcamento.despesas.reduce((s, d) => s + Number(d.valor), 0))}
+                  </td>
+                  <td />
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
@@ -793,6 +839,72 @@ function MaoDeObraForm({
           {enviando ? "..." : "Adicionar"}
         </button>
       </div>
+    </div>
+  );
+}
+
+const SUGESTOES_DESPESA = ["Deslocamento", "Combustível", "Alimentação", "Andaime / equipamento", "Frete", "Hospedagem"];
+
+function DespesaForm({ orcamentoId, onAdicionado }: { orcamentoId: string; onAdicionado: () => void }) {
+  const [descricao, setDescricao] = useState("");
+  const [valor, setValor] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function adicionar() {
+    setErro(null);
+    if (!descricao.trim()) return setErro("Informe a descrição.");
+    if (!(Number(valor) > 0)) return setErro("Informe o valor.");
+    setEnviando(true);
+    try {
+      await api.post(`/calhas/orcamentos/${orcamentoId}/despesas`, { descricao: descricao.trim(), valor: Number(valor) });
+      setDescricao("");
+      setValor("");
+      onAdicionado();
+    } catch (e: any) {
+      setErro(e?.response?.data?.erro ?? "Não foi possível adicionar a despesa.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  const campoDespesa =
+    "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900";
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {SUGESTOES_DESPESA.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setDescricao(s)}
+            className={`rounded-full border px-3 py-1 text-xs ${
+              descricao === s ? "border-slate-900 bg-slate-900 text-white" : "border-slate-300 text-slate-700 hover:border-slate-900"
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+          placeholder="Descrição da despesa"
+          className={campoDespesa}
+        />
+        <CampoMoeda value={valor} onChange={setValor} className={`${campoDespesa} sm:w-40`} />
+        <button
+          type="button"
+          onClick={adicionar}
+          disabled={enviando}
+          className="whitespace-nowrap rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+        >
+          {enviando ? "Adicionando..." : "Adicionar despesa"}
+        </button>
+      </div>
+      {erro && <p className="mt-2 text-xs text-red-600">{erro}</p>}
     </div>
   );
 }

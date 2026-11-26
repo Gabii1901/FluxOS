@@ -22,6 +22,7 @@ interface ModeloOrcamento {
   mostrarDesenhos: boolean;
   mostrarCroquis: boolean;
   mostrarMaoDeObra: boolean;
+  mostrarDespesas: boolean;
   mostrarAssinaturaCliente: boolean;
   apresentacao: string;
   prazoExecucao: string;
@@ -39,6 +40,7 @@ const MODELO_PADRAO: ModeloOrcamento = {
   mostrarDesenhos: true,
   mostrarCroquis: true,
   mostrarMaoDeObra: true,
+  mostrarDespesas: true,
   mostrarAssinaturaCliente: true,
   apresentacao: "",
   prazoExecucao: "",
@@ -127,6 +129,7 @@ export function CalhaOrcamentoImpressaoPage() {
       mostrarDesenhos: !resumido,
       mostrarCroquis: !resumido,
       mostrarMaoDeObra: !resumido,
+      mostrarDespesas: !resumido,
       mostrarMaterial: !resumido,
       mostrarMedidas: true,
     }));
@@ -149,6 +152,12 @@ export function CalhaOrcamentoImpressaoPage() {
 
   const totalMaoDeObra = orcamento.maoDeObra.reduce((soma, m) => soma + Number(m.custoTotal), 0);
   const horasMaoDeObra = orcamento.maoDeObra.reduce((soma, m) => soma + Number(m.horas), 0);
+  const despesas = orcamento.despesas ?? [];
+  const totalDespesas = despesas.reduce((soma, d) => soma + Number(d.valor), 0);
+  const embutidos = [
+    !modelo.mostrarMaoDeObra && totalMaoDeObra > 0 ? "mão de obra" : null,
+    !modelo.mostrarDespesas && totalDespesas > 0 ? "despesas" : null,
+  ].filter(Boolean);
   const itensComFormato = orcamento.itens
     .map((item) => ({ item, segmentos: item.segmentosCustom ?? item.perfil?.segmentos ?? null }))
     .filter((x): x is { item: OrcamentoCalhaItem; segmentos: NonNullable<typeof x.segmentos> } => !!x.segmentos?.length);
@@ -198,6 +207,9 @@ export function CalhaOrcamentoImpressaoPage() {
           </Opcao>
           <Opcao checked={modelo.mostrarMaoDeObra} onChange={(v) => alterar("mostrarMaoDeObra", v)}>
             Mão de obra separada
+          </Opcao>
+          <Opcao checked={modelo.mostrarDespesas} onChange={(v) => alterar("mostrarDespesas", v)}>
+            Outras despesas separadas
           </Opcao>
           <Opcao checked={modelo.mostrarDesenhos} onChange={(v) => alterar("mostrarDesenhos", v)}>
             Desenho das peças
@@ -370,10 +382,23 @@ export function CalhaOrcamentoImpressaoPage() {
                     )}
                   </tr>
                 )}
+                {modelo.mostrarDespesas &&
+                  despesas.map((d) => (
+                    <tr key={d.id}>
+                      <td className="py-1.5">{d.descricao}</td>
+                      {modelo.mostrarMedidas && <td className="py-1.5 text-slate-600">—</td>}
+                      {modelo.mostrarMaterial && <td className="py-1.5 text-slate-600">—</td>}
+                      {modelo.mostrarValoresItens && (
+                        <td className="py-1.5 text-right" style={{ fontVariantNumeric: "tabular-nums" }}>
+                          {formatarMoeda(Number(d.valor))}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
               </tbody>
             </table>
             <div className="mt-2 flex items-baseline justify-between border-t border-slate-300 pt-2 text-base font-semibold">
-              <span>Total{!modelo.mostrarMaoDeObra && totalMaoDeObra > 0 ? " (materiais e mão de obra)" : ""}</span>
+              <span>Total{embutidos.length > 0 ? ` (inclui ${embutidos.join(" e ")})` : ""}</span>
               <span style={{ fontVariantNumeric: "tabular-nums" }}>{formatarMoeda(Number(orcamento.precoTotal))}</span>
             </div>
           </section>

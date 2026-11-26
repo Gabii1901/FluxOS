@@ -93,6 +93,12 @@ export interface OrcamentoCalhaItem {
   precoCalculado: string;
 }
 
+export interface OrcamentoCalhaDespesa {
+  id: string;
+  descricao: string;
+  valor: string;
+}
+
 export interface OrcamentoCalhaMaoDeObra {
   id: string;
   usuarioId: string;
@@ -117,6 +123,7 @@ export interface OrcamentoCalha {
   criadoEm: string;
   itens: OrcamentoCalhaItem[];
   maoDeObra: OrcamentoCalhaMaoDeObra[];
+  despesas: OrcamentoCalhaDespesa[];
 }
 
 export interface OrcamentoCalhaResumo {

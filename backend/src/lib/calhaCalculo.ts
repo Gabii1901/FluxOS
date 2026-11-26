@@ -63,13 +63,15 @@ interface TotaisOrcamento {
 export function recalcularTotais(
   itens: { custoCalculado: number; precoCalculado: number }[],
   maoDeObra: { custoTotal: number }[],
+  despesas: { valor: number }[] = [],
 ): TotaisOrcamento {
   const custoItens = itens.reduce((soma, item) => soma + item.custoCalculado, 0);
   const precoItens = itens.reduce((soma, item) => soma + item.precoCalculado, 0);
   const custoMaoDeObra = maoDeObra.reduce((soma, m) => soma + m.custoTotal, 0);
+  const totalDespesas = despesas.reduce((soma, d) => soma + d.valor, 0);
 
   return {
-    custoTotal: custoItens + custoMaoDeObra,
-    precoTotal: precoItens + custoMaoDeObra,
+    custoTotal: custoItens + custoMaoDeObra + totalDespesas,
+    precoTotal: precoItens + custoMaoDeObra + totalDespesas,
   };
 }
