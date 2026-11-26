@@ -16,6 +16,7 @@ import { ordensServicoRoutes } from "./routes/ordensServicoRoutes";
 import { pagamentosRoutes } from "./routes/pagamentosRoutes";
 import { pecasRoutes } from "./routes/pecasRoutes";
 import { permissoesRoutes } from "./routes/permissoesRoutes";
+import { relatoriosRoutes } from "./routes/relatoriosRoutes";
 import { usuariosRoutes } from "./routes/usuariosRoutes";
 
 export const app = express();
@@ -36,6 +37,7 @@ app.use("/calhas", calhaRoutes);
 app.use("/faturas", faturasRoutes);
 app.use("/contas-pagar", contasPagarRoutes);
 app.use("/notas-entrada", notasEntradaRoutes);
+app.use("/relatorios", relatoriosRoutes);
 app.use("/consultas", consultasRoutes);
 app.use("/empresa", empresaRoutes);
 app.use("/permissoes", permissoesRoutes);

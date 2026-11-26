@@ -31,6 +31,7 @@ import { OrcamentosPage } from "./pages/OrcamentosPage";
 import { PagamentosPendentesPage } from "./pages/PagamentosPendentesPage";
 import { PecaDetalhePage } from "./pages/PecaDetalhePage";
 import { PermissoesPage } from "./pages/PermissoesPage";
+import { RelatoriosPage } from "./pages/RelatoriosPage";
 import { ReciboImpressaoPage } from "./pages/ReciboImpressaoPage";
 import { UsuariosPage } from "./pages/UsuariosPage";
 
@@ -159,6 +160,14 @@ function App() {
                   element={
                     <RotaComPermissao modulo="clientes">
                       <ClientesPage />
+                    </RotaComPermissao>
+                  }
+                />
+                <Route
+                  path="/relatorios"
+                  element={
+                    <RotaComPermissao modulo="financeiro">
+                      <RelatoriosPage />
                     </RotaComPermissao>
                   }
                 />

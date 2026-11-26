@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { usePermissao } from "../hooks/usePermissao";
 import { api } from "../lib/api";
 import { STATUS_LABEL, TODOS_STATUS, type OrdemServico, type StatusOs } from "../types/ordemServico";
+import type { MesRelatorio, RelatorioFinanceiro } from "../types/relatorio";
 import type { ResumoContasPagar } from "../types/contaPagar";
 import type { Modulo } from "../types/permissao";
 
@@ -18,6 +19,7 @@ const ATALHOS: { to: string; label: string; modulo: Modulo }[] = [
   { to: "/estoque", label: "Estoque", modulo: "estoque" },
   { to: "/pagamentos-pendentes", label: "Pagamentos a prazo", modulo: "financeiro" },
   { to: "/contas-pagar", label: "Contas a pagar", modulo: "financeiro" },
+  { to: "/relatorios", label: "Relatórios", modulo: "financeiro" },
   { to: "/usuarios", label: "Usuários", modulo: "usuarios" },
 ];
 
@@ -46,6 +48,7 @@ export function DashboardPage() {
   const [resumoFinanceiro, setResumoFinanceiro] = useState<ResumoFinanceiroData | null>(null);
   const [carregando, setCarregando] = useState(podeVerOs);
   const [contasPagar, setContasPagar] = useState<ResumoContasPagar | null>(null);
+  const [despesasMensais, setDespesasMensais] = useState<MesRelatorio[] | null>(null);
 
   useEffect(() => {
     if (!podeVerOs) return;
@@ -65,9 +68,51 @@ export function DashboardPage() {
       .get<ResumoContasPagar>("/contas-pagar/resumo")
       .then((resposta) => setContasPagar(resposta.data))
       .catch(() => {});
+    const hoje = new Date();
+    const doisDig = (n: number) => String(n).padStart(2, "0");
+    const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 5, 1);
+    const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    api
+      .get<RelatorioFinanceiro>("/relatorios/financeiro", {
+        params: {
+          inicio: `${inicio.getFullYear()}-${doisDig(inicio.getMonth() + 1)}-01`,
+          fim: `${fim.getFullYear()}-${doisDig(fim.getMonth() + 1)}-${doisDig(fim.getDate())}`,
+        },
+      })
+      .then((resposta) => setDespesasMensais(resposta.data.meses))
+      .catch(() => {});
   }, [podeVerFinanceiro]);
 
   const moeda = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const mesAtual = despesasMensais?.[despesasMensais.length - 1];
+  const nomeMes = (mes: string) => {
+    const [ano, m] = mes.split("-").map(Number);
+    const texto = new Date(ano, m - 1, 1).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+    return `${texto.charAt(0).toUpperCase()}${texto.slice(1)}/${String(ano).slice(2)}`;
+  };
+  const cartaoDespesasMensais = podeVerFinanceiro && despesasMensais && mesAtual && (
+    <div className="mb-6 rounded-xl border border-slate-200 border-l-4 border-l-red-400 bg-white p-5">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Despesas deste mês</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+            {moeda(mesAtual.despesaPaga + mesAtual.despesaEmAberto)}
+          </p>
+          <p className="mt-1 text-xs text-slate-500" style={{ fontVariantNumeric: "tabular-nums" }}>
+            {moeda(mesAtual.despesaPaga)} pago · {moeda(mesAtual.despesaEmAberto)} em aberto
+          </p>
+        </div>
+        <Link to="/relatorios" className="text-xs font-medium text-slate-500 hover:text-slate-900">
+          Ver relatórios →
+        </Link>
+      </div>
+      <p className="mb-2 text-xs font-medium text-slate-500">Últimos 6 meses</p>
+      <BarChart
+        data={despesasMensais.map((m) => ({ id: m.mes, label: nomeMes(m.mes), value: m.despesaPaga + m.despesaEmAberto }))}
+        ariaLabel="Despesas por mês nos últimos 6 meses"
+      />
+    </div>
+  );
   const cartaoContasPagar = podeVerFinanceiro && contasPagar && (
     <Link
       to="/contas-pagar"
@@ -155,6 +200,7 @@ export function DashboardPage() {
       </header>
 
       {!podeVerOs && cartaoContasPagar}
+      {!podeVerOs && cartaoDespesasMensais}
       {!podeVerOs ? (
         <div className="rounded-xl border border-slate-200 bg-white p-6">
           <p className="mb-4 text-sm font-medium text-slate-700">Seus atalhos</p>
@@ -212,6 +258,7 @@ export function DashboardPage() {
           </div>
 
           {cartaoContasPagar}
+          {cartaoDespesasMensais}
 
           {podeVerFinanceiro && resumoFinanceiro && (
             <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5">

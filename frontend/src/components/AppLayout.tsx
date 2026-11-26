@@ -13,6 +13,7 @@ const NAV_ITEMS: { to: string; label: string; end?: boolean; modulo: Modulo }[] 
   { to: "/orcamento-calhas-materiais", label: "Materiais (calhas)", modulo: "orcamento_calhas" },
   { to: "/pagamentos-pendentes", label: "Pagamentos a prazo", modulo: "financeiro" },
   { to: "/contas-pagar", label: "Contas a pagar", modulo: "financeiro" },
+  { to: "/relatorios", label: "Relatórios", modulo: "financeiro" },
   { to: "/clientes", label: "Clientes", modulo: "clientes" },
   { to: "/estoque", label: "Estoque", modulo: "estoque" },
   { to: "/usuarios", label: "Usuários", modulo: "usuarios" },
