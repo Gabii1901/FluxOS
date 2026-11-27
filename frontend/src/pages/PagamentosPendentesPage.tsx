@@ -103,7 +103,7 @@ export function PagamentosPendentesPage() {
   }, [pagamentos, filtroBusca, filtroMetodo, somenteAtrasados]);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-slate-900">Pagamentos a prazo</h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -139,7 +139,7 @@ export function PagamentosPendentesPage() {
 
       {pagamentos.length > 0 && (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="w-full text-left text-sm">
+          <table className="tabela-cards w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-3">OS</th>

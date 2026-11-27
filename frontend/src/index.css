@@ -4,3 +4,111 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+
+/*
+ * Tabelas de listagem no celular: cada linha vira um cartão e cada célula mostra
+ * o nome da coluna ao lado do valor (data-label, preenchido por rotularTabelas).
+ * A 1ª linha do cabeçalho (títulos) some; linhas de filtro continuam visíveis.
+ */
+@media (max-width: 639px) {
+  table.tabela-cards,
+  table.tabela-cards > tbody,
+  table.tabela-cards > tfoot,
+  table.tabela-cards > thead {
+    display: block;
+    width: 100%;
+  }
+  table.tabela-cards > thead > tr:first-child {
+    display: none;
+  }
+  table.tabela-cards > thead > tr:not(:first-child) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  table.tabela-cards > thead > tr:not(:first-child) > th {
+    display: block;
+    padding: 0;
+  }
+  table.tabela-cards > thead > tr:not(:first-child) > th:empty {
+    display: none;
+  }
+  table.tabela-cards > tbody > tr,
+  table.tabela-cards > tfoot > tr {
+    display: block;
+    padding: 0.625rem 0.875rem;
+  }
+  /* Rótulo à esquerda; um ou mais valores empilhados à direita. */
+  table.tabela-cards > tbody > tr > td,
+  table.tabela-cards > tfoot > tr > td {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 1rem;
+    justify-items: end;
+    align-items: baseline;
+    padding: 0.25rem 0;
+    text-align: right;
+    min-width: 0;
+  }
+  table.tabela-cards > tbody > tr > td > *,
+  table.tabela-cards > tfoot > tr > td > * {
+    min-width: 0;
+  }
+  /* No cartão o texto quebra linha em vez de ser cortado na borda. */
+  table.tabela-cards > tbody > tr > td,
+  table.tabela-cards > tbody > tr > td *,
+  table.tabela-cards > tfoot > tr > td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    max-width: none;
+  }
+  table.tabela-cards > tbody > tr > td .truncate {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  table.tabela-cards {
+    min-width: 0 !important;
+  }
+  table.tabela-cards > tbody > tr > td:empty,
+  table.tabela-cards > tfoot > tr > td:empty {
+    display: none;
+  }
+  table.tabela-cards > tbody > tr > td[data-label]::before,
+  table.tabela-cards > tfoot > tr > td[data-label]::before {
+    content: attr(data-label);
+    grid-column: 1;
+    grid-row: 1 / span 20;
+    justify-self: start;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-align: left;
+  }
+  /* Célula sem título de coluna (ex.: botões de ação): itens lado a lado, à direita. */
+  table.tabela-cards > tbody > tr > td:not([data-label]),
+  table.tabela-cards > tfoot > tr > td:not([data-label]) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+  /* A 1ª célula é o "título" do cartão: ocupa a linha toda, sem rótulo. */
+  table.tabela-cards > tbody > tr > td:first-child {
+    display: block;
+    text-align: left;
+    font-weight: 600;
+  }
+  table.tabela-cards > tbody > tr > td:first-child::before {
+    content: none;
+  }
+  /* Célula de mensagem única ("Nenhum item...") */
+  table.tabela-cards > tbody > tr > td[colspan] {
+    display: block;
+    text-align: center;
+    font-weight: 400;
+  }
+  table.tabela-cards > tbody > tr > td[colspan]::before {
+    content: none;
+  }
+}

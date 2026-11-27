@@ -94,12 +94,12 @@ export function PecaDetalhePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       <Link to="/estoque" className="text-sm text-slate-500 hover:text-slate-900">
         ← Estoque
       </Link>
 
-      <header className="mb-8 mt-3 flex items-start justify-between">
+      <header className="mb-6 mt-3 flex flex-wrap items-start justify-between gap-3 sm:mb-8">
         <div>
           <p className="font-mono text-sm text-slate-500">{peca.sku}</p>
           <h1 className="mt-1 text-lg font-medium text-slate-900">{peca.nome}</h1>

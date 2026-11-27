@@ -103,7 +103,7 @@ export function AdminEmpresasPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Empresas (admin)</h1>
         <button
@@ -118,8 +118,8 @@ export function AdminEmpresasPage() {
       {carregando ? (
         <p className="text-sm text-slate-500">Carregando...</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="tabela-cards w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs font-medium uppercase text-slate-500">
               <tr>
                 <th className="px-4 py-3">Empresa</th>
@@ -256,7 +256,7 @@ function CriarEmpresaForm({ onCancelar, onCriada }: { onCancelar: () => void; on
   }
 
   return (
-    <div className="mx-auto max-w-lg px-6 py-8">
+    <div className="mx-auto max-w-lg px-4 py-6 sm:px-6 sm:py-8">
       <button type="button" onClick={onCancelar} className="mb-4 text-xs font-medium text-slate-500 hover:text-slate-900">
         ← Voltar
       </button>
@@ -287,7 +287,7 @@ function CriarEmpresaForm({ onCancelar, onCriada }: { onCancelar: () => void; on
         </div>
 
         <p className="mb-3 mt-5 text-sm font-medium text-slate-700">Endereço</p>
-        <div className="mb-4 grid grid-cols-2 gap-3">
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className={rotulo}>CEP</label>
             <input required value={cep} onChange={(e) => setCep(e.target.value)} onBlur={(e) => buscarCep(e.target.value)} className={campo} />
@@ -309,7 +309,7 @@ function CriarEmpresaForm({ onCancelar, onCriada }: { onCancelar: () => void; on
           <label className={rotulo}>Bairro</label>
           <input required value={bairro} onChange={(e) => setBairro(e.target.value)} className={campo} />
         </div>
-        <div className="mb-5 grid grid-cols-3 gap-3">
+        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="col-span-2">
             <label className={rotulo}>Cidade</label>
             <input required value={cidade} onChange={(e) => setCidade(e.target.value)} className={campo} />
@@ -372,7 +372,7 @@ function CobrancaPersonalizadaForm({
 
   if (resultado) {
     return (
-      <div className="mx-auto max-w-md px-6 py-8">
+      <div className="mx-auto max-w-md px-4 py-6 sm:px-6 sm:py-8">
         <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
           <p className="text-lg font-medium text-slate-900">Cobrança criada!</p>
           {resultado.checkoutUrl && (
@@ -407,7 +407,7 @@ function CobrancaPersonalizadaForm({
   }
 
   return (
-    <div className="mx-auto max-w-sm px-6 py-8">
+    <div className="mx-auto max-w-sm px-4 py-6 sm:px-6 sm:py-8">
       <button type="button" onClick={onCancelar} className="mb-4 text-xs font-medium text-slate-500 hover:text-slate-900">
         ← Voltar
       </button>

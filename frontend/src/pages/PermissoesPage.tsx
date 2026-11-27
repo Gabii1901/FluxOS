@@ -78,7 +78,7 @@ export function PermissoesPage() {
   const usuarioSelecionado = usuarios.find((u) => u.id === selecionadoId);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-slate-900">Permissões</h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -119,7 +119,7 @@ export function PermissoesPage() {
 
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             {!selecionadoId && (
-              <p className="text-sm text-slate-500">Selecione uma pessoa à esquerda para editar as permissões.</p>
+              <p className="text-sm text-slate-500">Selecione uma pessoa na lista para editar as permissões.</p>
             )}
 
             {selecionadoId && carregandoPermissoes && (

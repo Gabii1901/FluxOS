@@ -63,7 +63,7 @@ export function ReciboImpressaoPage() {
   const numeroRecibo = recibo.id.slice(0, 8).toUpperCase();
 
   return (
-    <div className="mx-auto max-w-2xl px-8 py-10 text-slate-900">
+    <div className="mx-auto max-w-2xl px-4 py-6 text-slate-900 sm:px-8 sm:py-10">
       <div className="mb-6 flex justify-end print:hidden">
         <button
           onClick={() => window.print()}

@@ -138,8 +138,8 @@ export function PerfilCalhaEditor({
   const qtdCroquis = croquis.filter(Boolean).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4 py-8">
-      <div className="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 sm:px-4 sm:py-8">
+      <div className="flex h-full w-full max-w-3xl flex-col overflow-hidden bg-white sm:h-auto sm:max-h-full sm:rounded-2xl sm:shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
             <p className="text-sm font-semibold text-slate-900">Desenhos da peça</p>
@@ -150,11 +150,11 @@ export function PerfilCalhaEditor({
           </button>
         </div>
 
-        <div className="overflow-y-auto px-5 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
           <div className="mb-4 grid grid-cols-3 rounded-lg bg-slate-100 p-1 text-sm">
             {(
               [
-                { id: "mao", label: "Desenhar à mão" },
+                { id: "mao", label: "À mão" },
                 { id: "medidas", label: "Medidas" },
                 { id: "croqui", label: `Croquis${qtdCroquis ? ` (${qtdCroquis})` : ""}` },
               ] as { id: Aba; label: string }[]

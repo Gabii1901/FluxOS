@@ -212,8 +212,8 @@ export function ImportarNotaPage() {
   const pecasAtivas = pecas.filter((p) => p.ativo);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10">
-      <header className="mb-6 flex items-center justify-between">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link to="/estoque/notas" className="text-sm text-slate-500 hover:underline">
             ← Notas de entrada

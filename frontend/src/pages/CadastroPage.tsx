@@ -203,7 +203,7 @@ export function CadastroPage() {
             Endereço <span className="font-normal text-slate-400">(exigido para emissão de boleto)</span>
           </p>
 
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="cep" className={rotulo}>CEP</label>
               <input
@@ -262,7 +262,7 @@ export function CadastroPage() {
             />
           </div>
 
-          <div className="mb-5 grid grid-cols-3 gap-3">
+          <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="col-span-2">
               <label htmlFor="cidade" className={rotulo}>Cidade</label>
               <input

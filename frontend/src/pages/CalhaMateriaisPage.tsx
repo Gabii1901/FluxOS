@@ -78,8 +78,8 @@ export function CalhaMateriaisPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
-      <header className="mb-8 flex items-center justify-between">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3 sm:mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Materiais / chapas</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -105,7 +105,7 @@ export function CalhaMateriaisPage() {
             <label className={rotulo}>Nome</label>
             <input required value={nome} onChange={(e) => setNome(e.target.value)} className={campo} placeholder="Material 1" />
           </div>
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className={rotulo}>Espessura (mm)</label>
               <input value={espessuraMm} onChange={(e) => setEspessuraMm(e.target.value)} className={campo} placeholder="43" />
@@ -115,7 +115,7 @@ export function CalhaMateriaisPage() {
               <input value={tipo} onChange={(e) => setTipo(e.target.value)} className={campo} placeholder="Galvalume" />
             </div>
           </div>
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className={rotulo}>Cor</label>
               <input value={cor} onChange={(e) => setCor(e.target.value)} className={campo} placeholder="Natural (galvanizada)" />
@@ -140,8 +140,8 @@ export function CalhaMateriaisPage() {
       ) : materiais.length === 0 ? (
         <p className="text-sm text-slate-500">Nenhum material cadastrado ainda.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="tabela-cards w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-3">Nome</th>

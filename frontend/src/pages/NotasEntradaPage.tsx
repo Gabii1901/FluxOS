@@ -53,8 +53,8 @@ export function NotasEntradaPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <header className="mb-8 flex items-center justify-between">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3 sm:mb-8">
         <div>
           <Link to="/estoque" className="text-sm text-slate-500 hover:underline">
             ← Estoque
@@ -79,7 +79,7 @@ export function NotasEntradaPage() {
 
       {notas.length > 0 && (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="w-full text-left text-sm">
+          <table className="tabela-cards w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-3">Nota</th>
@@ -109,7 +109,7 @@ export function NotasEntradaPage() {
                   {aberta?.id === nota.id && (
                     <tr>
                       <td colSpan={5} className="bg-slate-50 px-4 py-3">
-                        <table className="w-full text-xs">
+                        <table className="tabela-cards w-full text-xs">
                           <thead className="text-slate-500">
                             <tr>
                               <th className="py-1 text-left">Item na nota</th>

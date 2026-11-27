@@ -217,13 +217,13 @@ export function DadosEmpresaPage() {
     }
   }
 
-  if (carregando) return <div className="mx-auto max-w-3xl px-6 py-10 text-sm text-slate-500">Carregando...</div>;
-  if (!empresa || !form) return <div className="mx-auto max-w-3xl px-6 py-10 text-sm text-red-600">{erro}</div>;
+  if (carregando) return <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10 text-sm text-slate-500">Carregando...</div>;
+  if (!empresa || !form) return <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10 text-sm text-red-600">{erro}</div>;
 
   const sujo = JSON.stringify(form) !== JSON.stringify(paraForm(empresa));
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       {modoAdmin && (
         <Link to="/admin/empresas" className="mb-4 inline-block text-xs font-medium text-slate-500 hover:text-slate-900">
           ← Voltar para empresas

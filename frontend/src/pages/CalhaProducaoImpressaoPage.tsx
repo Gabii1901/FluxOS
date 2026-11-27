@@ -100,7 +100,7 @@ export function CalhaProducaoImpressaoPage() {
   const gradeCls = colunas === 2 ? "grid-cols-2" : colunas === 4 ? "grid-cols-4" : "grid-cols-3";
 
   return (
-    <div className="mx-auto max-w-[210mm] px-6 py-8 text-slate-900 print:max-w-none print:p-0">
+    <div className="mx-auto max-w-[210mm] px-3 py-6 sm:px-6 sm:py-8 text-slate-900 print:max-w-none print:p-0">
       <style>{`@page { size: A4; margin: 10mm; } @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }`}</style>
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 print:hidden">

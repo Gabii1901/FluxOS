@@ -243,7 +243,7 @@ export function DashboardPage() {
   }, [ordens]);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-slate-900">
           Olá, {usuario?.nome.split(" ")[0]}
@@ -276,34 +276,34 @@ export function DashboardPage() {
         <p className="text-sm text-slate-500">Carregando...</p>
       ) : (
         <>
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 border-l-4 border-l-slate-300">
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:grid-cols-4 sm:gap-4">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 border-l-4 border-l-slate-300">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Total de OS</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+              <p className="mt-1 text-2xl font-semibold sm:mt-2 sm:text-3xl text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
                 {ordens.length}
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-5 border-l-4 border-l-blue-400">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 border-l-4 border-l-blue-400">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Em andamento
               </p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
+              <p className="mt-1 text-2xl font-semibold sm:mt-2 sm:text-3xl text-slate-900" style={{ fontVariantNumeric: "tabular-nums" }}>
                 {abertas.length}
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-5 border-l-4 border-l-amber-400">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 border-l-4 border-l-amber-400">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Aguardando aprovação
               </p>
-              <p className="mt-2 text-3xl font-semibold text-amber-600" style={{ fontVariantNumeric: "tabular-nums" }}>
+              <p className="mt-1 text-2xl font-semibold sm:mt-2 sm:text-3xl text-amber-600" style={{ fontVariantNumeric: "tabular-nums" }}>
                 {aguardandoAprovacao.length}
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-5 border-l-4 border-l-emerald-400">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 border-l-4 border-l-emerald-400">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Entregues
               </p>
-              <p className="mt-2 text-3xl font-semibold text-emerald-600" style={{ fontVariantNumeric: "tabular-nums" }}>
+              <p className="mt-1 text-2xl font-semibold sm:mt-2 sm:text-3xl text-emerald-600" style={{ fontVariantNumeric: "tabular-nums" }}>
                 {entregues.length}
               </p>
             </div>

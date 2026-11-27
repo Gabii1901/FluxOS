@@ -55,8 +55,8 @@ export function CalhaOrcamentosPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <header className="mb-8 flex items-center justify-between">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3 sm:mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Orçamento de Calhas</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -81,7 +81,7 @@ export function CalhaOrcamentosPage() {
 
       {orcamentos.length > 0 && (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="w-full text-left text-sm">
+          <table className="tabela-cards w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-4 py-3">Nº</th>

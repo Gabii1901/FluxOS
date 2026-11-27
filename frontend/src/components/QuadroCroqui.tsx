@@ -221,7 +221,7 @@ export function QuadroCroqui({
   );
 
   const quadro = (
-        <div className="overflow-auto bg-slate-50 p-3 sm:p-5">
+        <div className="min-h-0 flex-1 overflow-auto bg-slate-50 p-3 sm:p-5">
           <canvas
             ref={canvasRef}
             width={LARGURA}
@@ -251,8 +251,8 @@ export function QuadroCroqui({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-6">
-      <div className="flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 sm:p-6">
+      <div className="flex h-full w-full max-w-4xl flex-col overflow-hidden bg-white sm:h-auto sm:max-h-full sm:rounded-2xl sm:shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
           <div>
             <p className="text-sm font-semibold text-slate-900">{titulo}</p>

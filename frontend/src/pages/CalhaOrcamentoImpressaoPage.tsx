@@ -296,7 +296,7 @@ export function CalhaOrcamentoImpressaoPage() {
       </aside>
 
       <main className="flex-1 px-4 py-8 print:p-0">
-        <div className="mx-auto max-w-2xl bg-white px-8 py-10 text-slate-900 shadow-sm print:max-w-none print:shadow-none">
+        <div className="mx-auto max-w-2xl bg-white px-4 py-6 text-slate-900 shadow-sm sm:px-8 sm:py-10 print:max-w-none print:shadow-none">
           <header className="mb-8 flex items-start justify-between border-b border-slate-300 pb-6">
             <CabecalhoEmpresaImpressao nomeEmpresa={orcamento.empresa?.nome} />
             <div className="text-right">

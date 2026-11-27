@@ -82,7 +82,7 @@ export function RelatoriosPage() {
   }, [periodo]);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Relatórios</h1>
@@ -197,7 +197,7 @@ function AbaDespesas({ relatorio }: { relatorio: RelatorioFinanceiro }) {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-sm">
+        <table className="tabela-cards w-full text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className={th}>Vencimento</th>
@@ -274,7 +274,7 @@ function AbaReceitas({ relatorio }: { relatorio: RelatorioFinanceiro }) {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-sm">
+        <table className="tabela-cards w-full text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className={th}>Data</th>
@@ -337,7 +337,7 @@ function AbaSaldo({ relatorio }: { relatorio: RelatorioFinanceiro }) {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-sm">
+        <table className="tabela-cards w-full text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className={`${th} text-left`}>Mês</th>

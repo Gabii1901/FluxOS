@@ -161,7 +161,7 @@ export function CalhaOrcamentoDetalhePage() {
 
   if (erroCarregamento) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-10">
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
         <p className="text-sm text-slate-500">Orçamento não encontrado.</p>
         <button type="button" onClick={() => navigate("/orcamento-calhas")} className="mt-3 text-sm font-medium text-slate-900 underline">
           Voltar para a lista
@@ -171,13 +171,13 @@ export function CalhaOrcamentoDetalhePage() {
   }
 
   if (carregando || !orcamento) {
-    return <div className="mx-auto max-w-5xl px-6 py-10 text-sm text-slate-500">Carregando...</div>;
+    return <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10 text-sm text-slate-500">Carregando...</div>;
   }
 
   const lucro = Number(orcamento.precoTotal) - Number(orcamento.custoTotal);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
       <button
         type="button"
         onClick={() => navigate(orcamento.os ? `/ordens-servico/${orcamento.os.id}` : "/orcamento-calhas")}
@@ -187,8 +187,8 @@ export function CalhaOrcamentoDetalhePage() {
       </button>
 
       <header className="mb-6 rounded-xl border border-slate-200 bg-white p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
             <h1 className="text-2xl font-semibold text-slate-900">Orçamento #{orcamento.numero}</h1>
             {orcamento.os && (
               <p className="mt-1 text-sm text-slate-500">
@@ -200,7 +200,7 @@ export function CalhaOrcamentoDetalhePage() {
               </p>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Link
               to={`/orcamento-calhas/${orcamento.id}/imprimir`}
               target="_blank"
@@ -258,18 +258,18 @@ export function CalhaOrcamentoDetalhePage() {
 
       {/* Resumo */}
       <div className="mb-8 rounded-xl border border-slate-200 bg-white p-5">
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-3 gap-2 text-center sm:gap-4">
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">Custo</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">{formatarMoeda(Number(orcamento.custoTotal))}</p>
+            <p className="mt-1 text-base font-semibold text-slate-900 sm:text-lg">{formatarMoeda(Number(orcamento.custoTotal))}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">Preço final</p>
-            <p className="mt-1 text-lg font-semibold text-blue-700">{formatarMoeda(Number(orcamento.precoTotal))}</p>
+            <p className="mt-1 text-base font-semibold text-blue-700 sm:text-lg">{formatarMoeda(Number(orcamento.precoTotal))}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-500">Lucro</p>
-            <p className="mt-1 text-lg font-semibold text-green-700">+{formatarMoeda(lucro)}</p>
+            <p className="mt-1 text-base font-semibold text-green-700 sm:text-lg">+{formatarMoeda(lucro)}</p>
           </div>
         </div>
       </div>
@@ -312,8 +312,8 @@ export function CalhaOrcamentoDetalhePage() {
         )}
 
         {orcamento.itens.length > 0 && (
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="tabela-cards w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-4 py-3">Serviço</th>
@@ -394,8 +394,8 @@ export function CalhaOrcamentoDetalhePage() {
         <MaoDeObraForm orcamentoId={orcamento.id} funcionarios={funcionarios} onAdicionado={recarregar} />
 
         {orcamento.maoDeObra.length > 0 && (
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="tabela-cards w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-4 py-3">Funcionário</th>
@@ -434,8 +434,8 @@ export function CalhaOrcamentoDetalhePage() {
         <DespesaForm orcamentoId={orcamento.id} onAdicionado={recarregar} />
 
         {orcamento.despesas.length > 0 && (
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="tabela-cards w-full text-left text-sm">
               <tbody className="divide-y divide-slate-100">
                 {orcamento.despesas.map((d) => (
                   <tr key={d.id}>
@@ -641,7 +641,7 @@ function ItemForm({
 
       {ehMetal && (
         <>
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className={rotulo}>Corte (largura)</label>
               <input value={corteLargura} onChange={(e) => setCorteLargura(e.target.value)} className={campo} placeholder="40" />
